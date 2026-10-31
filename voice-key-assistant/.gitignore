@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# Las huellas vocales son datos biométricos: no se versionan
+profiles/*
+!profiles/.gitkeep
