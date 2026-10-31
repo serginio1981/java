@@ -9,8 +9,15 @@ from __future__ import annotations
 
 import argparse
 import logging
+import sys
 
-from config import load_config
+if sys.version_info < (3, 11):
+    raise SystemExit("voice-key-assistant requiere Python 3.11 o superior")
+
+from audit import (  # noqa: E402
+    ACCEPTED, EMPTY_TRANSCRIPT, ERROR, GUEST_ANSWERED, IGNORED, INVALID_AUDIO, Attempt, AuditLogger,
+)
+from config import load_config  # noqa: E402
 
 log = logging.getLogger("voice-key-assistant")
 
@@ -59,26 +66,48 @@ def cmd_run(cfg: dict) -> None:
     llm = Responder.from_dict(cfg.get("llm", {}))
     tts = Speaker.from_dict(cfg.get("tts", {}))
 
+    lcfg = cfg.get("logging", {})
+    audit = AuditLogger(lcfg.get("attempts_file"), lcfg.get("log_transcripts", True))
+
     log.info("Escuchando... (Ctrl+C para salir)")
     for phrase in mic.phrases():
-        try:
-            emb = embed(phrase, acfg.sample_rate)
-        except ValueError:
-            continue
-        result = verifier.verify(emb)
-        role = perms.role_for(result.name)
-        log.info("Hablante=%s rol=%s score=%.3f adaptado=%s",
-                 result.name or "desconocido", role.name, result.score, result.adapted)
-        # Verificación ANTES de transcribir: si se ignora, el audio no se procesa.
-        if not perms.should_respond(role):
-            continue
+        audit.record(process_phrase(phrase, acfg.sample_rate, embed, verifier, perms, stt, llm, tts))
+
+
+def process_phrase(phrase, sample_rate, embed, verifier, perms, stt, llm, tts) -> Attempt:
+    """Pipeline de un intento: verificar → transcribir → responder → hablar."""
+    attempt = Attempt(outcome=ERROR, threshold=verifier.threshold,
+                      audio_seconds=round(len(phrase) / sample_rate, 2))
+    try:
+        emb = embed(phrase, sample_rate)
+    except ValueError as e:
+        attempt.outcome, attempt.error = INVALID_AUDIO, str(e)
+        return attempt
+
+    result = verifier.verify(emb)
+    role = perms.role_for(result.name)
+    attempt.speaker, attempt.role = result.name, role.name
+    attempt.score, attempt.accepted, attempt.adapted = result.score, result.accepted, result.adapted
+    attempt.scores = result.scores
+
+    # Verificación ANTES de transcribir: si se ignora, el audio no se procesa.
+    if not perms.should_respond(role):
+        attempt.outcome = IGNORED
+        return attempt
+    try:
         text = stt.transcribe(phrase)
         if not text:
-            continue
-        log.info("Transcripción: %s", text)
-        answer = llm.respond(text, role, result.name)
-        log.info("Respuesta: %s", answer)
-        tts.say(answer)
+            attempt.outcome = EMPTY_TRANSCRIPT
+            return attempt
+        attempt.transcript = text
+        attempt.response = llm.respond(text, role, result.name)
+        tts.say(attempt.response)
+    except Exception as e:  # un fallo puntual no debe detener el loop
+        log.exception("Error procesando la frase")
+        attempt.error = repr(e)
+        return attempt
+    attempt.outcome = ACCEPTED if result.accepted else GUEST_ANSWERED
+    return attempt
 
 
 def main() -> None:

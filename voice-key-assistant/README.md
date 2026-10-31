@@ -29,14 +29,18 @@ el audio de una voz desconocida no se transcribe ni se envía a la API.
 | `stt/transcribe.py` | `faster-whisper`, modelo `small`, español. |
 | `llm/respond.py` | API de Anthropic con system prompt que incluye el nivel de permiso. Historial separado por hablante. |
 | `tts/speak.py` | `edge-tts` (reproduce con `mpv` o `ffplay`); fallback a `pyttsx3`. |
-| `main.py` | CLI: `enroll` y `run`. |
+| `audit.py` | Registro de cada intento (consola + JSONL) con el resultado de la verificación. |
+| `main.py` | CLI `enroll` / `run`. Loop: capturar → verificar hablante → transcribir → responder → hablar. |
 
 ## Instalación
 
+Requiere **Python 3.11 o superior** (`main.py` lo verifica al iniciar).
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
+cd voice-key-assistant
+python3.11 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...
+export ANTHROPIC_API_KEY=...                            # Windows: set ANTHROPIC_API_KEY=...
 ```
 
 Dependencias de sistema (pueden variar según SO; verificar en la documentación de cada paquete):
@@ -52,6 +56,21 @@ python main.py enroll --name owner --role owner     # solo puede haber un dueño
 python main.py enroll --name maria --role family
 python main.py run
 ```
+
+## Registro de intentos
+
+Cada frase detectada genera un registro, en consola y en `logs/attempts.jsonl` (una línea JSON por intento):
+
+```json
+{"outcome": "accepted", "speaker": "owner", "role": "owner", "score": 0.8731, "threshold": 0.75,
+ "accepted": true, "adapted": true, "audio_seconds": 2.4, "scores": {"owner": 0.8731, "maria": 0.41},
+ "transcript": "¿qué tengo mañana?", "response": "...", "error": null, "timestamp": "2026-10-31T17:20:00+00:00"}
+```
+
+Valores de `outcome`: `accepted`, `guest_answered`, `ignored`, `invalid_audio`, `empty_transcript`, `error`.
+Con `logging.log_transcripts: false` no se guardan el texto ni las respuestas; solo los metadatos de verificación.
+Los intentos rechazados (`ignored`) sirven para calibrar el umbral y para detectar intentos de suplantación.
+Un error puntual (red, TTS) queda registrado y el loop continúa.
 
 ## Adaptación continua (y por qué es conservadora)
 
