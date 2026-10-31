@@ -1,0 +1,53 @@
+# Configuración de voice-key-assistant
+
+audio:
+  sample_rate: 16000          # webrtcvad acepta 8000/16000/32000/48000 Hz
+  frame_ms: 30                # webrtcvad acepta 10/20/30 ms
+  vad_aggressiveness: 2       # 0 (permisivo) .. 3 (agresivo)
+  padding_ms: 300             # ventana para decidir inicio/fin de frase
+  trigger_ratio: 0.9          # fracción de frames con voz para abrir/cerrar frase
+  min_phrase_ms: 600          # frases más cortas se descartan
+  max_phrase_ms: 15000        # corte duro de seguridad
+  device: null                # null = micrófono por defecto del sistema
+
+voice:
+  profiles_dir: profiles
+  threshold: 0.75             # similitud coseno mínima para aceptar a un hablante
+  enroll_samples: 7           # entre 5 y 10
+  adaptation:
+    enabled: true
+    alpha: 0.05               # peso de la nueva muestra en la media móvil
+    min_score: 0.82           # solo se adapta con verificaciones muy confiables
+    max_drift: 0.85           # similitud mínima perfil-adaptado vs. perfil de enrolamiento
+
+permissions:
+  guest_mode: limited         # "limited" (responde info) o "ignore" (no responde)
+  roles:
+    owner:
+      description: "Dueño del asistente. Acceso total."
+      capabilities: ["info", "conversation", "actions", "personal_data", "settings"]
+    family:
+      description: "Familiares enrolados. Comandos limitados."
+      capabilities: ["info", "conversation", "actions"]
+    guest:
+      description: "Voz no reconocida. Solo respuestas informativas."
+      capabilities: ["info"]
+
+stt:
+  model: small
+  language: es
+  device: auto                # "cpu", "cuda" o "auto"
+  compute_type: int8
+  beam_size: 5
+
+llm:
+  # ATENCIÓN: claude-sonnet-4-5 está deprecado y se retira el 2026-11-30.
+  # Alternativa vigente recomendada: claude-sonnet-5-5
+  model: claude-sonnet-4-5
+  max_tokens: 1024
+  history_turns: 6            # turnos previos que se mantienen por hablante
+
+tts:
+  engine: edge                # "edge" o "pyttsx3"
+  voice: es-CL-CatalinaNeural # verificar disponibilidad con: edge-tts --list-voices
+  player: null                # null = autodetectar (mpv / ffplay)

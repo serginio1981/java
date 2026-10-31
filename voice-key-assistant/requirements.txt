@@ -1,0 +1,9 @@
+numpy
+PyYAML
+sounddevice
+webrtcvad
+resemblyzer
+faster-whisper
+anthropic
+edge-tts
+pyttsx3
