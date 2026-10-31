@@ -20,4 +20,7 @@ def load_config(path: str | Path | None = None) -> dict[str, Any]:
     if not pdir.is_absolute():
         pdir = PROJECT_ROOT / pdir
     voice["profiles_dir"] = str(pdir)
+    lg = cfg.setdefault("logging", {})
+    if lg.get("attempts_file") and not Path(lg["attempts_file"]).is_absolute():
+        lg["attempts_file"] = str(PROJECT_ROOT / lg["attempts_file"])
     return cfg

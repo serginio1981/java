@@ -51,3 +51,7 @@ tts:
   engine: edge                # "edge" o "pyttsx3"
   voice: es-CL-CatalinaNeural # verificar disponibilidad con: edge-tts --list-voices
   player: null                # null = autodetectar (mpv / ffplay)
+
+logging:
+  attempts_file: logs/attempts.jsonl  # una línea JSON por intento; null = solo consola
+  log_transcripts: true               # false = no guarda texto transcrito ni respuestas

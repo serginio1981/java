@@ -5,3 +5,4 @@ __pycache__/
 # Las huellas vocales son datos biométricos: no se versionan
 profiles/*
 !profiles/.gitkeep
+logs/
