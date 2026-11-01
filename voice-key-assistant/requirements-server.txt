@@ -1,0 +1,11 @@
+# Dependencias del servidor (sin micrófono ni parlantes locales).
+# PyTorch se instala desde el índice CPU para una imagen más liviana (ver Dockerfile).
+numpy<2          # resemblyzer es antiguo; se fija por precaución frente a numpy 2.x
+PyYAML
+resemblyzer
+faster-whisper
+anthropic
+edge-tts
+fastapi
+uvicorn[standard]
+python-multipart

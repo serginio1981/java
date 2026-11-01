@@ -1,3 +1,13 @@
+---
+title: Llave de Voz
+emoji: 🔑
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # voice-key-assistant
 
 Asistente de voz con "llave de voz": antes de procesar un comando verifica la
@@ -29,6 +39,8 @@ el audio de una voz desconocida no se transcribe ni se envía a la API.
 | `stt/transcribe.py` | `faster-whisper`, modelo `small`, español. |
 | `llm/respond.py` | API de Anthropic con system prompt que incluye el nivel de permiso. Historial separado por hablante. |
 | `tts/speak.py` | `edge-tts` (reproduce con `mpv` o `ffplay`); fallback a `pyttsx3`. |
+| `server/app.py` | API HTTP (FastAPI) + app web para usar el asistente desde el teléfono. `server/audio_io.py` decodifica el audio del navegador (ffmpeg). |
+| `web/` | PWA: graba, muestra el resultado de la verificación y reproduce la respuesta. |
 | `audit.py` | Registro de cada intento (consola + JSONL) con el resultado de la verificación. |
 | `main.py` | CLI `enroll` / `run`. Loop: capturar → verificar hablante → transcribir → responder → hablar. |
 
@@ -56,6 +68,28 @@ python main.py enroll --name owner --role owner     # solo puede haber un dueño
 python main.py enroll --name maria --role family
 python main.py run
 ```
+
+## Uso desde el iPhone (o cualquier navegador)
+
+Si no tienes computador, el asistente puede correr en un servidor en la nube y usarse desde una
+app web. Guía paso a paso con Hugging Face Spaces (gratuito): [`docs/DESPLIEGUE_IPHONE.md`](docs/DESPLIEGUE_IPHONE.md).
+La cabecera YAML al inicio de este README es la configuración que Spaces necesita.
+
+Para correr el servidor en local:
+
+```bash
+pip install -r requirements-server.txt      # requiere ffmpeg instalado
+export ANTHROPIC_API_KEY=... VKA_TOKEN=un-secreto-largo
+python -m uvicorn server.app:app --port 7860
+# abrir http://localhost:7860 y pegar el token en Ajustes
+```
+
+Endpoints (todos con cabecera `X-Auth-Token`): `GET /api/status`, `POST /api/enroll`
+(5–10 archivos de audio), `POST /api/command` (un audio → verificación, transcripción, respuesta
+y MP3 en base64), `GET /api/profiles/export` y `POST /api/profiles/import` (respaldo de perfiles).
+
+**No probado aún:** el build del `Dockerfile` (este entorno no tiene daemon de Docker) y la
+grabación desde Safari en iOS; la API está cubierta por tests con componentes simulados.
 
 ## Registro de intentos
 
@@ -105,5 +139,7 @@ pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Cubren segmentación VAD, construcción de perfil, verificación, adaptación/deriva y permisos,
-con embeddings sintéticos (no requieren micrófono, modelos ni API).
+Cubren segmentación VAD, construcción de perfil, verificación, adaptación/deriva, permisos, el loop
+principal y la API HTTP (enrolamiento, comandos, respaldo, decodificación de audio), con embeddings
+sintéticos y componentes simulados (no requieren micrófono, modelos ni API). Los tests de la API
+necesitan `pip install fastapi httpx python-multipart`.

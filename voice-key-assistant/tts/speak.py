@@ -38,13 +38,25 @@ class Speaker:
                 log.warning("edge-tts falló (%s); usando pyttsx3", e)
         self._say_pyttsx3(text)
 
-    def _say_edge(self, text: str) -> None:
+    def synthesize(self, text: str) -> bytes:
+        """Devuelve MP3 generado con edge-tts (sin reproducir). Lanza excepción si falla."""
         import edge_tts
 
         fd, path = tempfile.mkstemp(suffix=".mp3")
         os.close(fd)
         try:
             asyncio.run(edge_tts.Communicate(text, self.voice).save(path))
+            with open(path, "rb") as fh:
+                return fh.read()
+        finally:
+            os.unlink(path)
+
+    def _say_edge(self, text: str) -> None:
+        fd, path = tempfile.mkstemp(suffix=".mp3")
+        os.close(fd)
+        try:
+            with open(path, "wb") as fh:
+                fh.write(self.synthesize(text))
             subprocess.run(PLAYERS.get(self.player, [self.player]) + [path], check=True)
         finally:
             os.unlink(path)
