@@ -13,7 +13,16 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '../..');
 const SHOTS = process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), 'bm-shots-'));
 const USER_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'bm-ud-'));
-const shot = (page, name) => page.screenshot({ path: path.join(SHOTS, name + '.png') });
+// Con MANUAL_SHOTS=<carpeta> además guarda capturas limpias (sin avisos ni ruta de datos) para el manual.
+const MANUAL = process.env.MANUAL_SHOTS || '';
+const styled = new WeakSet();
+async function shot(page, name, manualName) {
+  await page.screenshot({ path: path.join(SHOTS, name + '.png') });
+  if (!MANUAL || !manualName) return;
+  if (!styled.has(page)) { await page.addStyleTag({ content: '.toasts, .op-footer { visibility: hidden !important; }' }); styled.add(page); }
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: path.join(MANUAL, manualName + '.jpg'), type: 'jpeg', quality: 80 });
+}
 
 // Cartón externo de prueba (por columnas)
 const EXT = [[1, 2, 3, 4, 5], [16, 17, 18, 19, 20], [31, 32, null, 34, 35], [46, 47, 48, 49, 50], [61, 62, 63, 64, 65]];
@@ -85,6 +94,30 @@ async function typeCard(op, series, folio, grid) {
   const errors = [];
   op.on('pageerror', (e) => errors.push('operador: ' + e.message));
 
+  // ---------- Manual de usuario y menú ----------
+  const menu = await app.evaluate(({ Menu }) => Menu.getApplicationMenu().items.map((i) => i.label.replace('&', '') + ':' + i.submenu.items.map((s) => s.label).join('|')));
+  assert.ok(menu.some((m) => m.startsWith('Ayuda:Manual de usuario')), 'menú Ayuda → Manual de usuario: ' + menu.join(' / '));
+  const manP = app.waitForEvent('window');
+  await op.click('.help-btn');
+  const man = await manP;
+  await man.waitForSelector('#rapido');
+  assert.equal(await man.title(), 'BingoMaster — Manual de usuario');
+  await man.waitForFunction(() => [...document.images].every((i) => i.complete));
+  const broken = await man.$$eval('img', (imgs) => imgs.filter((i) => !i.naturalWidth).map((i) => i.getAttribute('src')));
+  assert.deepEqual(broken, [], 'imágenes del manual');
+  assert.ok((await man.$$eval('main section', (x) => x.length)) >= 17);
+  await man.fill('#buscar', 'desempate');
+  const visibles = await man.$$eval('main section:not([hidden])', (x) => x.map((s) => s.id));
+  assert.ok(visibles.includes('bingo') && !visibles.includes('instalacion'), 'búsqueda: ' + visibles);
+  await man.fill('#buscar', '');
+  await man.setViewportSize({ width: 1180, height: 800 });
+  await man.screenshot({ path: path.join(SHOTS, '0-manual.png') });
+  // El menú Ayuda → Atajos reutiliza la misma ventana
+  await app.evaluate(({ Menu }) => Menu.getApplicationMenu().items.find((i) => i.label.includes('yuda')).submenu.items[1].click());
+  await man.waitForFunction(() => location.hash === '#atajos');
+  assert.equal(app.windows().filter((w) => w.url().includes('manual.html')).length, 1);
+  await man.close();
+
   // ---------- F2: evento nuevo ----------
   await tab(op, 'Evento y juegos');
   await op.click('button:has-text("Nuevo evento")');
@@ -95,14 +128,14 @@ async function typeCard(op, series, folio, grid) {
   assert.deepEqual(await op.$$eval('ol.games .g-name', (e) => e.map((x) => x.textContent)), [
     'Juego 1 · Primeros 3', 'Juego 2 · Línea (cualquiera)', 'Juego 3 · X', 'Juego 4 · Cartón lleno',
   ]);
-  await shot(op, '1-evento-juegos');
+  await shot(op, '1-evento-juegos', 'eventos');
 
   // ---------- F3: figura personalizada (esquinas) ----------
   await tab(op, 'Figuras');
   await op.click('button:has-text("Nueva figura")');
   await op.fill('.modal input >> nth=0', 'Cuatro esquinas');
   for (const i of [0, 4, 20, 24]) await op.click(`.pattern-editor .mask-lg button.mask-cell >> nth=${i}`);
-  await shot(op, '2-editor-figura');
+  await shot(op, '2-editor-figura', 'figura-editor');
   await op.click('.modal button:has-text("Guardar figura")');
   await op.waitForSelector('.pattern-card .pc-name:has-text("Cuatro esquinas")');
   await tab(op, 'Evento y juegos');
@@ -125,14 +158,14 @@ async function typeCard(op, series, folio, grid) {
   const pdf = fs.readFileSync(pdfPath);
   assert.equal(pdf.subarray(0, 4).toString(), '%PDF');
   assert.equal((pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length, 2, 'A4, 4 por hoja, folios 1-8 = 2 páginas');
-  await shot(op, '3-cartones');
+  await shot(op, '3-cartones', 'cartones');
 
   // ---------- F3: ingreso manual de cartón externo ----------
   await op.click('.subtabs button:has-text("Ingreso manual")');
   await typeCard(op, 'AR-7', '004512', EXT);
   await op.waitForTimeout(150);
   assert.equal(await op.isDisabled('.manual button.primary'), false);
-  await shot(op, '4-ingreso-manual');
+  await shot(op, '4-ingreso-manual', 'ingreso-manual');
   await op.keyboard.press('Control+Enter');
   await waitToast(op, /Cartón externo guardado: AR-7 004512/);
   assert.equal(await op.inputValue('.ce-ids input >> nth=0'), 'AR-7', 'mantiene la serie');
@@ -166,14 +199,14 @@ async function typeCard(op, series, folio, grid) {
   await op.keyboard.press('Enter');
   await op.waitForSelector('.verdict');
   assert.equal(await op.textContent('.verdict'), 'VÁLIDO');
-  await shot(op, '5-bingo-valido');
+  await shot(op, '5-bingo-valido', 'bingo');
   await op.click('button:has-text("Registrar ganador")');
   await op.click('button:has-text("Mostrar en pantalla pública")');
   await pub.waitForSelector('.pub-overlay');
   assert.match(await pub.textContent('.pub-overlay'), /Folio\s*004512/);
   await pub.setViewportSize({ width: 1920, height: 1080 });
   await pub.waitForTimeout(600);
-  await shot(pub, '6-publica-bingo');
+  await shot(pub, '6-publica-bingo', 'publica-bingo');
 
   // Un cartón propio cualquiera: NO VÁLIDO
   await op.fill('.bingo-search input', '1');
@@ -204,8 +237,8 @@ async function typeCard(op, series, folio, grid) {
   await op.click('.modal-head button');
 
   await pub.waitForTimeout(400);
-  await shot(pub, '7-publica-juego');
-  await shot(op, '8-operador-juego');
+  await shot(pub, '7-publica-juego', 'publica');
+  await shot(op, '8-operador-juego', 'juego');
 
   // Terminar juegos SIN ganador hasta el último
   for (const next of ['X', 'Cartón lleno', 'Cuatro esquinas']) {
@@ -222,21 +255,24 @@ async function typeCard(op, series, folio, grid) {
   await op.waitForSelector('.empty-box h2:has-text("Todos los juegos terminaron")');
   await pub.waitForFunction(() => document.querySelector('.pub-game')?.textContent === '¡Gracias por jugar!');
   assert.equal(await op.isDisabled('#num'), true, 'no se canta con todos los juegos terminados');
-  await shot(op, '8b-juegos-terminados');
+  await shot(op, '8b-juegos-terminados', 'juegos-terminados');
 
   // ---------- F5: importación con IA (API simulada) ----------
   await app.evaluate(({ safeStorage }) => {
     safeStorage.isEncryptionAvailable = () => true;
     safeStorage.encryptString = (t) => Buffer.from('E' + t);
     safeStorage.decryptString = (b) => b.toString().slice(1);
+    safeStorage.getSelectedStorageBackend = () => 'gnome_libsecret';
   });
   await tab(op, 'Ajustes');
   await op.fill('input[type=password]', 'sk-ant-prueba');
   await op.click('button:has-text("Guardar cifrada")');
   await op.waitForSelector('text=API key configurada');
+  await shot(op, '8c-ajustes', 'ajustes');
   await op.click('label:has-text("Doble lectura") input');
   await op.waitForFunction(() => document.querySelector('label.chk input[type=checkbox]:checked') !== null);
   await tab(op, 'Importar con IA');
+  await shot(op, '8d-importar', 'importar');
   await op.setInputFiles('.drop input[type=file]', path.join(SHOTS, '6-publica-bingo.png'));
   await op.waitForSelector('.review', { timeout: 15000 });
   assert.equal(apiRequests.length, 2, 'doble lectura = 2 llamadas');
@@ -250,7 +286,7 @@ async function typeCard(op, series, folio, grid) {
   const readings = op.locator('.reading');
   assert.equal(await readings.count(), 2);
   assert.match(await readings.nth(1).textContent(), /DUDOSO/);
-  await shot(op, '9-revision-ia');
+  await shot(op, '9-revision-ia', 'revision-ia');
   // Cartón 1: revisar y guardar
   await readings.nth(0).locator('label.chk input').check();
   await readings.nth(0).locator('button:has-text("Confirmar y guardar")').click();

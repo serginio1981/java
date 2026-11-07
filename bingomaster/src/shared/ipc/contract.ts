@@ -217,6 +217,8 @@ export interface Commands {
   'winners:note': { args: [number, string]; result: Result };
   'overlay:show': { args: [Overlay]; result: Result };
   'overlay:hide': { args: []; result: Result };
+  // Ayuda
+  'help:openManual': { args: [string | null]; result: Result };
   // Ventana pública
   'public:open': { args: [number | null]; result: Result };
   'public:close': { args: []; result: Result };

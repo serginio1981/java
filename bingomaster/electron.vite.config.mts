@@ -20,6 +20,7 @@ export default defineConfig({
         input: {
           operator: resolve(__dirname, 'src/renderer/operator.html'),
           public: resolve(__dirname, 'src/renderer/public.html'),
+          manual: resolve(__dirname, 'src/renderer/manual.html'),
         },
       },
     },

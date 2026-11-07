@@ -4,10 +4,38 @@ import type { DisplayInfo, PublicWindowInfo } from '../../shared/ipc/contract';
 
 const PRELOAD = join(__dirname, '../preload/index.js');
 
-function loadPage(win: BrowserWindow, page: 'operator' | 'public'): void {
+function loadPage(win: BrowserWindow, page: 'operator' | 'public' | 'manual', hash?: string): void {
   const devUrl = process.env['ELECTRON_RENDERER_URL'];
-  if (devUrl) void win.loadURL(`${devUrl}/${page}.html`);
-  else void win.loadFile(join(__dirname, `../renderer/${page}.html`));
+  if (devUrl) void win.loadURL(`${devUrl}/${page}.html${hash ? '#' + hash : ''}`);
+  else void win.loadFile(join(__dirname, `../renderer/${page}.html`), hash ? { hash } : undefined);
+}
+
+let manualWin: BrowserWindow | null = null;
+
+/** Manual de usuario (HTML local, sin red ni acceso a la app). */
+export function openManual(section?: string): void {
+  if (manualWin && !manualWin.isDestroyed()) {
+    if (manualWin.isMinimized()) manualWin.restore();
+    manualWin.focus();
+    if (section) void manualWin.webContents.executeJavaScript(`location.hash = ${JSON.stringify('#' + section)}`);
+    return;
+  }
+  const area = screen.getPrimaryDisplay().workAreaSize;
+  manualWin = new BrowserWindow({
+    width: Math.min(1180, area.width),
+    height: Math.min(860, area.height),
+    title: 'BingoMaster — Manual de usuario',
+    autoHideMenuBar: true,
+    show: false,
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  manualWin.removeMenu();
+  manualWin.once('ready-to-show', () => manualWin?.show());
+  // Solo navegación dentro del propio manual.
+  manualWin.webContents.on('will-navigate', (e, url) => { if (!url.includes('manual.html')) e.preventDefault(); });
+  manualWin.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  manualWin.on('closed', () => { manualWin = null; });
+  loadPage(manualWin, 'manual', section);
 }
 
 const webPreferences = {
@@ -99,6 +127,7 @@ export class PublicWindowManager {
       });
       win.on('enter-full-screen', () => this.onChange());
       win.on('leave-full-screen', () => this.onChange());
+      win.removeMenu();
       win.once('ready-to-show', () => win?.show());
       loadPage(win, 'public');
       this.win = win;

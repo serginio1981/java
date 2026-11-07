@@ -46,6 +46,7 @@ export function OperatorApp() {
           ))}
         </nav>
         <PublicControls state={state} />
+        <button className="help-btn" onClick={() => void call('help:openManual', null)} title="Manual de usuario (F1)">? Manual</button>
       </header>
 
       {state.notice && (

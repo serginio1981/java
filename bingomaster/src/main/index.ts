@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, safeStorage, screen, session } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, screen, session } from 'electron';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, type FSWatcher } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import type { CommandName, Commands, OperatorState, Overlay, Result } from '../shared/ipc/contract';
@@ -18,7 +18,8 @@ import { Settings } from './settings/settings';
 import { runSmokeTest } from './smoke';
 import { buildOperatorState, toPublic } from './state/state';
 import { checkClaim, registerWinner, setWinnerNote } from './winners/winners';
-import { createOperatorWindow, listDisplays, PublicWindowManager } from './windows/windows';
+import { buildMenu } from './windows/menu';
+import { createOperatorWindow, listDisplays, openManual, PublicWindowManager } from './windows/windows';
 
 if (process.argv.includes('--smoke-test')) {
   runSmokeTest();
@@ -173,6 +174,7 @@ function main(): void {
     handle('overlay:show', (o) => { overlay = { series: String(o.series), folio: String(o.folio), gameName: String(o.gameName) }; return ok; });
     handle('overlay:hide', () => { overlay = null; return ok; });
 
+    handle('help:openManual', (section) => { openManual(section && /^[a-z-]{1,30}$/.test(section) ? section : undefined); return ok; }, { mutates: false });
     handle('public:open', (displayId) => { publicWin.open(displayId); return ok; });
     handle('public:close', () => { publicWin.close(); return ok; });
     handle('public:toggleFullscreen', () => { publicWin.toggleFullscreen(); return ok; });
@@ -262,6 +264,12 @@ function main(): void {
     session.defaultSession.setPermissionCheckHandler((wc, perm) => perm === 'media' && wc === operator?.webContents);
 
     registerIpc();
+    Menu.setApplicationMenu(buildMenu({
+      operator: () => operator,
+      openPublic: () => publicWin.open(null),
+      closePublic: () => publicWin.close(),
+      togglePublicFullscreen: () => publicWin.toggleFullscreen(),
+    }));
     operator = createOperatorWindow();
     operator.on('closed', () => {
       operator = null;

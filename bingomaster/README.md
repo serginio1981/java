@@ -20,6 +20,13 @@ punta en Electron) y empaquetadas para Windows en GitHub Actions.
 **No probado:** instalación en Windows real, proyector físico, webcam real y la API de
 Claude real (se probó con un servidor que la simula).
 
+## Manual de usuario
+
+Incluido en la app (offline): botón **? Manual** en la barra superior, menú **Ayuda → Manual de
+usuario** o tecla **F1**. Fuente: `src/renderer/manual.html` (+ `manual/`). Las capturas del
+manual se regeneran con `MANUAL_SHOTS=src/renderer/manual/img node tests/e2e/full.e2e.cjs`.
+La barra de menú está en español (Archivo, Edición, Ver, Ventana pública, Ayuda).
+
 ## Uso rápido
 
 1. **Evento y juegos:** "Nuevo evento" (nombre, fecha, código de serie, si los números se

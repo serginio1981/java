@@ -215,3 +215,5 @@ ol.games li.current { border-color: var(--accent); background: #eef5ff; }
 .finish-btn { font-weight: 700; border-color: #9aa6bb; }
 ol.games li.finished { opacity: .65; }
 .empty-box { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.help-btn { font-weight: 700; color: var(--accent); }
+.import-grid label { display: flex; gap: 8px; align-items: center; }
