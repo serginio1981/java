@@ -34,6 +34,7 @@ export interface GameView {
   name: string;
   patternId: number;
   patternName: string;
+  finished: boolean;
 }
 
 export interface CurrentGame {
@@ -70,6 +71,8 @@ export interface PublicState {
   lastFive: CallView[];
   count: number;
   current: CurrentGame | null;
+  /** El evento tiene juegos y todos terminaron. */
+  gamesFinished: boolean;
   overlay: Overlay | null;
 }
 
@@ -193,7 +196,8 @@ export interface Commands {
   'games:update': { args: [number, { name: string; patternId: number }]; result: Result };
   'games:remove': { args: [number]; result: Result };
   'games:move': { args: [number, -1 | 1]; result: Result };
-  'games:next': { args: []; result: Result };
+  'games:next': { args: []; result: Result<{ next: GameView | null }> };
+  'games:loadDefault': { args: []; result: Result };
   'games:setCurrent': { args: [number]; result: Result };
   // Figuras
   'patterns:create': { args: [{ name: string; def: PatternDef }]; result: Result<{ pattern: PatternView }> };

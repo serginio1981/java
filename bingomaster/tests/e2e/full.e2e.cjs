@@ -182,13 +182,13 @@ async function typeCard(op, series, folio, grid) {
   if (await op.$('.choose')) await op.click('.choose button:has-text("NOV26")');
   await op.waitForSelector('.verdict');
   // (puede ser válido si por azar completa con el último número; lo normal es NO VÁLIDO)
-  await op.click('button:has-text("Pasar al siguiente juego")').catch(() => undefined);
-  await op.keyboard.press('Escape');
-  if (await op.$('.modal')) await op.click('.modal-head button');
-  await op.waitForSelector('.game-title:has-text("Línea (cualquiera)")', { timeout: 5000 }).catch(async () => {
-    await op.click('button:has-text("Siguiente juego")');
-    await op.waitForSelector('.game-title:has-text("Línea (cualquiera)")');
-  });
+  await op.click('.modal-head button');
+  // Terminar el juego 1 (tiene ganador) desde el panel derecho
+  await op.click('.finish-btn');
+  await op.waitForSelector('[role=alertdialog]');
+  assert.match(await op.textContent('[role=alertdialog]'), /Tiene 1 ganador/);
+  await op.click('[role=alertdialog] button.danger');
+  await op.waitForSelector('.game-title:has-text("Línea (cualquiera)")');
   await pub.waitForFunction(() => !document.querySelector('.pub-overlay'));
   assert.match(await pub.textContent('.pub-game'), /Juego 2 de 5 — Línea/);
 
@@ -206,6 +206,23 @@ async function typeCard(op, series, folio, grid) {
   await pub.waitForTimeout(400);
   await shot(pub, '7-publica-juego');
   await shot(op, '8-operador-juego');
+
+  // Terminar juegos SIN ganador hasta el último
+  for (const next of ['X', 'Cartón lleno', 'Cuatro esquinas']) {
+    await op.click('.finish-btn');
+    await op.waitForSelector('[role=alertdialog]');
+    assert.match(await op.textContent('[role=alertdialog]'), /sin ganador/);
+    await op.click('[role=alertdialog] button.danger');
+    await op.waitForSelector(`.game-title:has-text("${next}")`);
+  }
+  assert.match(await op.textContent('.finish-btn'), /^Terminar juego$/, 'en el último juego el botón sigue disponible');
+  await op.click('.finish-btn');
+  await op.waitForSelector('[role=alertdialog]:has-text("último juego")');
+  await op.click('[role=alertdialog] button.danger');
+  await op.waitForSelector('.empty-box h2:has-text("Todos los juegos terminaron")');
+  await pub.waitForFunction(() => document.querySelector('.pub-game')?.textContent === '¡Gracias por jugar!');
+  assert.equal(await op.isDisabled('#num'), true, 'no se canta con todos los juegos terminados');
+  await shot(op, '8b-juegos-terminados');
 
   // ---------- F5: importación con IA (API simulada) ----------
   await app.evaluate(({ safeStorage }) => {
@@ -255,7 +272,7 @@ async function typeCard(op, series, folio, grid) {
   ({ app, op } = await launch());
   await op.waitForSelector('.notice');
   assert.match(await op.textContent('.notice'), /Sesión recuperada/);
-  assert.match(await op.textContent('.game-title'), /Línea/);
+  await op.waitForSelector('.empty-box h2:has-text("Todos los juegos terminaron")');
   assert.equal(await op.textContent('.op-count strong'), '9');
   await tab(op, 'Cartones');
   await op.waitForSelector('.cards-view h2:has-text("Cartones del evento (43)")');

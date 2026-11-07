@@ -88,14 +88,19 @@ function GamesEditor({ state }: { state: OperatorState }) {
   return (
     <>
       <div className="panel-head"><h2>Secuencia de juegos</h2></div>
+      {state.games.length === 0 && (
+        <div className="row left"><button className="primary" onClick={() => void call('games:loadDefault')}>Cargar secuencia inicial</button></div>
+      )}
       <ol className="games">
         {state.games.map((g, i) => (
-          <li key={g.id} className={g.id === curId ? 'current' : ''}>
+          <li key={g.id} className={g.id === curId ? 'current' : g.finished ? 'finished' : ''}>
             <span className="g-pos">{i + 1}</span>
             <span className="g-name">{g.name}<small className="muted"> · {g.patternName}</small></span>
             {winnersBy(g.id).length > 0 && <span className="badge">{winnersBy(g.id).length} ganador(es)</span>}
             <span className="g-actions">
-              {g.id === curId ? <strong>En juego</strong> : <button onClick={() => void call('games:setCurrent', g.id)} title="Jugar este juego ahora">Jugar</button>}
+              {g.id === curId ? <strong>En juego</strong>
+                : g.finished ? <><span className="muted small">Terminado</span><button onClick={() => void call('games:setCurrent', g.id)} title="Volver a abrir este juego">Reabrir</button></>
+                  : <button onClick={() => void call('games:setCurrent', g.id)} title="Jugar este juego ahora">Jugar</button>}
               <button onClick={() => void call('games:move', g.id, -1)} disabled={i === 0} aria-label="Subir">↑</button>
               <button onClick={() => void call('games:move', g.id, 1)} disabled={i === state.games.length - 1} aria-label="Bajar">↓</button>
               <button onClick={() => setEdit(g)}>Editar</button>

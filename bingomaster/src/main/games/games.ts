@@ -5,15 +5,15 @@ import { appError } from '../errors';
 import { getCurrentGameId, getEvent, setCurrentGameId } from '../events/events';
 import { getPattern } from '../patterns/patterns';
 
-interface Row { id: number; position: number; name: string; pattern_id: number; pattern_name: string }
+interface Row { id: number; position: number; name: string; pattern_id: number; pattern_name: string; finished_at: string | null }
 
 export function listGames(db: Db, eventId: number): GameView[] {
   const rows = db
-    .prepare(`SELECT g.id, g.position, g.name, g.pattern_id, p.name AS pattern_name
+    .prepare(`SELECT g.id, g.position, g.name, g.pattern_id, p.name AS pattern_name, g.finished_at
               FROM games g JOIN patterns p ON p.id = g.pattern_id
               WHERE g.event_id = ? ORDER BY g.position`)
     .all(eventId) as unknown as Row[];
-  return rows.map((r) => ({ id: r.id, position: r.position, name: r.name, patternId: r.pattern_id, patternName: r.pattern_name }));
+  return rows.map((r) => ({ id: r.id, position: r.position, name: r.name, patternId: r.pattern_id, patternName: r.pattern_name, finished: r.finished_at !== null }));
 }
 
 export function getCurrentGame(db: Db, eventId: number): CurrentGame | null {
@@ -98,17 +98,46 @@ export function moveGame(db: Db, eventId: number, gameId: number, dir: -1 | 1): 
   });
 }
 
-export function nextGame(db: Db, eventId: number): void {
-  const games = listGames(db, eventId);
+/**
+ * Termina el juego en curso, haya tenido ganador o no, y pasa al siguiente
+ * juego pendiente. Si era el último, el evento queda sin juego en curso.
+ * Devuelve el juego que queda en curso (o null).
+ */
+export function finishGame(db: Db, eventId: number): GameView | null {
   const cur = getCurrentGameId(db, eventId);
-  const i = games.findIndex((g) => g.id === cur);
-  const next = games[i + 1];
-  if (!next) throw appError('juego', 'Este es el último juego de la secuencia');
-  setCurrentGameId(db, eventId, next.id);
+  if (cur === null) throw appError('juego', 'No hay un juego en curso');
+  return transaction(db, () => {
+    db.prepare("UPDATE games SET finished_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?").run(cur);
+    const games = listGames(db, eventId);
+    const i = games.findIndex((g) => g.id === cur);
+    const next = games.slice(i + 1).find((g) => !g.finished) ?? games.find((g) => !g.finished) ?? null;
+    setCurrentGameId(db, eventId, next ? next.id : null);
+    return next;
+  });
+}
+
+/** Compatibilidad: "siguiente juego" = terminar el actual. */
+export const nextGame = finishGame;
+
+/** Carga la secuencia inicial en un evento sin juegos (p. ej. creado en una versión anterior). */
+export function loadDefaultSequence(db: Db, eventId: number, names: string[]): void {
+  if (listGames(db, eventId).length > 0) throw appError('juego', 'El evento ya tiene juegos');
+  for (const n of names) {
+    const p = db.prepare('SELECT id FROM patterns WHERE name = ? ORDER BY is_builtin DESC LIMIT 1').get(n) as { id: number } | undefined;
+    if (p) addGame(db, eventId, `Juego ${listGames(db, eventId).length + 1}`, p.id);
+  }
+}
+
+/** ¿El evento tiene juegos y todos están terminados? */
+export function allGamesFinished(db: Db, eventId: number): boolean {
+  const games = listGames(db, eventId);
+  return games.length > 0 && games.every((g) => g.finished) && getCurrentGameId(db, eventId) === null;
 }
 
 export function setCurrentGame(db: Db, eventId: number, gameId: number): void {
   gameOf(db, eventId, gameId);
   if (!getEvent(db, eventId)) throw appError('evento', 'Evento inexistente');
+  // Elegir un juego terminado lo reabre.
+  db.prepare('UPDATE games SET finished_at = NULL WHERE id = ?').run(gameId);
   setCurrentGameId(db, eventId, gameId);
 }

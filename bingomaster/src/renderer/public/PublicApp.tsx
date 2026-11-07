@@ -15,7 +15,7 @@ export function PublicApp() {
     <div className="pub">
       <header className="pub-header">
         <div className="pub-event">{state.event?.name ?? ''}</div>
-        <div className="pub-game">{cur ? `Juego ${cur.index} de ${cur.total} — ${cur.pattern.name}` : ''}</div>
+        <div className="pub-game">{cur ? `Juego ${cur.index} de ${cur.total} — ${cur.pattern.name}` : state.gamesFinished ? '¡Gracias por jugar!' : ''}</div>
         <div className="pub-count"><strong>{state.count}</strong> números</div>
       </header>
 

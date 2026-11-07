@@ -94,9 +94,9 @@ export function BingoDialog({ state, onClose }: { state: OperatorState; onClose:
                 <button className="big" onClick={() => void showPublic()}>Mostrar en pantalla pública</button>
                 {state.overlay && <button onClick={() => void call('overlay:hide')}>Quitar de la pantalla pública</button>}
                 <button onClick={() => { setClaim(null); setFolio(''); ref.current?.focus(); }}>Validar otro cartón (empate)</button>
-                {cur && cur.index < cur.total && (
-                  <button onClick={async () => { if (await call('games:next')) { toast('ok', 'Siguiente juego'); onClose(); } }}>
-                    Pasar al siguiente juego →
+                {cur && (
+                  <button onClick={async () => { if (await call('games:next')) { toast('ok', 'Juego terminado'); onClose(); } }}>
+                    {cur.index < cur.total ? 'Terminar juego y pasar al siguiente →' : 'Terminar juego (último)'}
                   </button>
                 )}
               </>

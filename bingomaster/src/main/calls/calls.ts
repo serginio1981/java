@@ -40,6 +40,10 @@ export function addCall(db: Db, eventId: number, n: number): Result<{ call: Call
   }
   return transaction(db, () => {
     if (!getEvent(db, eventId)) return { ok: false, code: 'evento', error: 'No hay un evento activo' };
+    const hasGames = (db.prepare('SELECT COUNT(*) AS n FROM games WHERE event_id = ?').get(eventId) as { n: number }).n > 0;
+    if (hasGames && getCurrentGameId(db, eventId) === null) {
+      return { ok: false, code: 'terminado', error: 'Todos los juegos terminaron. Elija o agregue un juego en "Evento y juegos".' };
+    }
     const current = listCurrentCalls(db, eventId);
     const prev = current.find((c) => c.number === n);
     if (prev) {

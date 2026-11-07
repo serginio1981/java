@@ -7,7 +7,7 @@ import { listCurrentCalls } from '../calls/calls';
 import { cardIndex, summary } from '../cards/cards';
 import type { Db } from '../db/database';
 import { getActiveEvent, listEvents } from '../events/events';
-import { getCurrentGame, listGames } from '../games/games';
+import { allGamesFinished, getCurrentGame, listGames } from '../games/games';
 import { listPatterns } from '../patterns/patterns';
 import { listWinners } from '../winners/winners';
 
@@ -21,13 +21,14 @@ export function buildPublicState(db: Db, overlay: Overlay | null = null): Public
     lastFive: calls.slice(-5).reverse(),
     count: calls.length,
     current: event ? getCurrentGame(db, event.id) : null,
+    gamesFinished: event ? allGamesFinished(db, event.id) : false,
     overlay,
   };
 }
 
 /** Proyección explícita: solo copia los campos públicos. */
 export function toPublic(s: OperatorState): PublicState {
-  return { event: s.event, calls: s.calls, last: s.last, lastFive: s.lastFive, count: s.count, current: s.current, overlay: s.overlay };
+  return { event: s.event, calls: s.calls, last: s.last, lastFive: s.lastFive, count: s.count, current: s.current, gamesFinished: s.gamesFinished, overlay: s.overlay };
 }
 
 export function buildOperatorState(

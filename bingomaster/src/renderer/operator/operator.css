@@ -211,3 +211,7 @@ ol.games li.current { border-color: var(--accent); background: #eef5ff; }
   .op-right { grid-column: 1 / -1; }
   .import-grid, .page-2col, .review { grid-template-columns: 1fr; }
 }
+
+.finish-btn { font-weight: 700; border-color: #9aa6bb; }
+ol.games li.finished { opacity: .65; }
+.empty-box { display: flex; flex-direction: column; gap: 8px; align-items: center; }

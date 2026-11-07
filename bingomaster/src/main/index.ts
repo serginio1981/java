@@ -9,8 +9,8 @@ import {
 } from './cards/cards';
 import { getMeta, openDatabase, setMeta, type Db } from './db/database';
 import { appError } from './errors';
-import { activateEvent, createEvent, ensureActiveEvent, getActiveEvent, updateEvent } from './events/events';
-import { addGame, moveGame, nextGame, removeGame, setCurrentGame, updateGame } from './games/games';
+import { activateEvent, createEvent, DEFAULT_SEQUENCE, ensureActiveEvent, getActiveEvent, updateEvent } from './events/events';
+import { addGame, finishGame, loadDefaultSequence, moveGame, removeGame, setCurrentGame, updateGame } from './games/games';
 import { readCards } from './import-ai/vision';
 import { createPattern, ensureBuiltinPatterns, removePattern, updatePattern } from './patterns/patterns';
 import { renderPdf } from './printing/pdf';
@@ -131,7 +131,8 @@ function main(): void {
     handle('games:update', (id, g) => { updateGame(db, eventId(), id, g.name, g.patternId); return ok; });
     handle('games:remove', (id) => { removeGame(db, eventId(), id); return ok; });
     handle('games:move', (id, dir) => { moveGame(db, eventId(), id, dir); return ok; });
-    handle('games:next', () => { nextGame(db, eventId()); overlay = null; return ok; });
+    handle('games:next', () => { const next = finishGame(db, eventId()); overlay = null; return { ok: true, next }; });
+    handle('games:loadDefault', () => { loadDefaultSequence(db, eventId(), DEFAULT_SEQUENCE); return ok; });
     handle('games:setCurrent', (id) => { setCurrentGame(db, eventId(), id); overlay = null; return ok; });
 
     handle('patterns:create', (p) => ({ ok: true, pattern: createPattern(db, p.name, p.def) }));

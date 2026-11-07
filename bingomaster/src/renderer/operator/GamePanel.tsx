@@ -15,7 +15,7 @@ export function GamePanel({ state, goTo }: { state: OperatorState; goTo: (t: Tab
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [busy, setBusy] = useState(false);
   const [confirmUndo, setConfirmUndo] = useState<CallView | null>(null);
-  const [confirmNext, setConfirmNext] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
   const [bingo, setBingo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -55,9 +55,10 @@ export function GamePanel({ state, goTo }: { state: OperatorState; goTo: (t: Tab
     focusInput();
   }
 
-  async function doNext(): Promise<void> {
-    setConfirmNext(false);
-    if (await call('games:next')) toast('ok', 'Siguiente juego');
+  async function doFinish(): Promise<void> {
+    setConfirmFinish(false);
+    const r = await call('games:next');
+    if (r) toast('ok', r.next ? `Juego terminado. Ahora: ${r.next.name} (${r.next.patternName})` : 'Juego terminado. Todos los juegos del evento terminaron.');
     focusInput();
   }
 
@@ -84,7 +85,7 @@ export function GamePanel({ state, goTo }: { state: OperatorState; goTo: (t: Tab
           <input id="num" ref={inputRef} className="op-input" value={input}
             onChange={(e) => setInput(e.target.value.replace(/[^0-9bingoBINGO-]/g, '').slice(0, 5))}
             onKeyDown={onKeyDown} inputMode="numeric" autoComplete="off" autoFocus placeholder="Nº"
-            aria-describedby="fb" disabled={!state.event} />
+            aria-describedby="fb" disabled={!state.event || state.gamesFinished} />
           <button className="primary" onClick={() => void submit()} disabled={busy || !state.event}>Cantar ↵</button>
         </div>
         <div id="fb" className={'feedback ' + (feedback?.kind ?? '')} role="status" aria-live="assertive">{feedback?.text ?? ' '}</div>
@@ -134,14 +135,23 @@ export function GamePanel({ state, goTo }: { state: OperatorState; goTo: (t: Tab
             {state.overlay ? (
               <button onClick={() => void call('overlay:hide')}>Quitar ¡BINGO! de la pantalla pública</button>
             ) : null}
-            <button onClick={() => (gameWinners.length ? void doNext() : setConfirmNext(true))} disabled={isLast}>
-              Siguiente juego →
+            <button className="finish-btn" onClick={() => setConfirmFinish(true)}>
+              Terminar juego{isLast ? '' : ' y pasar al siguiente →'}
             </button>
-            {isLast && <div className="muted small">Es el último juego de la secuencia.</div>}
+            {isLast && <div className="muted small">Es el último juego: al terminarlo se cierra la secuencia.</div>}
           </>
+        ) : state.gamesFinished ? (
+          <div className="empty-box">
+            <h2>Todos los juegos terminaron</h2>
+            <p className="muted">{state.winners.length} ganador(es) en el evento.</p>
+            <button onClick={() => goTo('eventos')}>Ver juegos / reabrir o agregar uno</button>
+          </div>
         ) : (
           <div className="empty-box">
-            <p>No hay juegos en la secuencia.</p>
+            <p>Este evento no tiene juegos.</p>
+            <button className="primary" onClick={() => void call('games:loadDefault').then((r) => r && toast('ok', 'Secuencia inicial cargada'))}>
+              Cargar secuencia inicial
+            </button>
             <button onClick={() => goTo('eventos')}>Configurar juegos</button>
           </div>
         )}
@@ -153,11 +163,15 @@ export function GamePanel({ state, goTo }: { state: OperatorState; goTo: (t: Tab
           confirmText={`Deshacer ${label(confirmUndo.number)}`}
           onConfirm={() => void doUndo()} onCancel={() => { setConfirmUndo(null); focusInput(); }} />
       )}
-      {confirmNext && (
-        <Confirm title="¿Pasar al siguiente juego sin ganador?"
-          text="Este juego no tiene ganadores registrados."
-          confirmText="Pasar al siguiente"
-          onConfirm={() => void doNext()} onCancel={() => { setConfirmNext(false); focusInput(); }} />
+      {confirmFinish && cur && (
+        <Confirm title={`¿Terminar ${cur.game.name} (${cur.pattern.name})?`}
+          text={(gameWinners.length
+            ? `Tiene ${gameWinners.length} ganador(es) registrado(s).`
+            : 'No tiene ganadores registrados: se termina sin ganador.')
+            + (isLast ? ' Es el último juego de la secuencia.' : ' Se pasará al siguiente juego.')
+            + (state.event && !state.event.accumulateCalls ? ' El tablero empezará vacío.' : '')}
+          confirmText="Terminar juego"
+          onConfirm={() => void doFinish()} onCancel={() => { setConfirmFinish(false); focusInput(); }} />
       )}
       {bingo && <BingoDialog state={state} onClose={() => { setBingo(false); focusInput(); }} />}
     </div>

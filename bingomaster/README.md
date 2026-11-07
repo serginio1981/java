@@ -29,7 +29,8 @@ Claude real (se probó con un servidor que la simula).
    PDF. Para reimprimir, indicar el rango de folios.
 3. **Juego:** escribir el número + Enter (teclado numérico). `−` o Ctrl+Z deshace (con
    confirmación). **F2** o `*` abre ¡BINGO!: folio → cartón con lo cantado → VÁLIDO / NO
-   VÁLIDO → registrar ganador → mostrar en la pública → siguiente juego. El panel derecho
+   VÁLIDO → registrar ganador → mostrar en la pública. **Terminar juego** cierra el juego con o
+   sin ganador. El panel derecho
    muestra (solo al operador) cuántos cartones completan la figura y cuántos están a 1.
 4. **Cartones externos:** pestaña Cartones → "Ingreso manual" (serie, folio y 24 números,
    el cursor avanza solo, Ctrl+Enter guarda) o pestaña "Importar con IA" (webcam, archivo,
@@ -44,7 +45,13 @@ Claude real (se probó con un servidor que la simula).
 - **Un bingo es VÁLIDO solo si la figura se completó con el último número cantado.** Si se
   completó antes, se informa en qué número y se marca NO VÁLIDO.
 - "Línea (cualquiera)" = 5 filas + 5 columnas + 2 diagonales.
-- Varios ganadores por juego: se registran todos; "Siguiente juego" es un paso aparte.
+- Varios ganadores por juego: se registran todos.
+- **Terminar juego** (panel derecho o diálogo ¡BINGO!) cierra el juego en curso haya tenido
+  ganador o no, y pasa al siguiente pendiente. En el último juego también está disponible: al
+  terminarlo se cierra la secuencia (la pública muestra "¡Gracias por jugar!"). Un juego
+  terminado se puede reabrir desde "Evento y juegos".
+- Eventos sin juegos (por ejemplo, el "Evento de prueba" creado por la versión F1) muestran el
+  botón "Cargar secuencia inicial".
 - Deshacer solo afecta números del juego en curso.
 - Identidad del cartón = serie + folio; no se puede repetir en el evento.
 

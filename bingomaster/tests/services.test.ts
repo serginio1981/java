@@ -10,7 +10,8 @@ import {
 } from '../src/main/cards/cards';
 import { openDatabase, type Db } from '../src/main/db/database';
 import { createEvent, getActiveEvent, getEvent } from '../src/main/events/events';
-import { addGame, getCurrentGame, listGames, moveGame, nextGame, removeGame } from '../src/main/games/games';
+import { addGame, allGamesFinished, finishGame, getCurrentGame, listGames, loadDefaultSequence, moveGame, nextGame, removeGame, setCurrentGame } from '../src/main/games/games';
+import { DEFAULT_SEQUENCE } from '../src/main/events/events';
 import { createPattern, ensureBuiltinPatterns, findPatternByName, listPatterns, removePattern } from '../src/main/patterns/patterns';
 import { buildPrintHtml } from '../src/main/printing/html';
 import { buildOperatorState } from '../src/main/state/state';
@@ -208,7 +209,6 @@ describe('juegos, validación y ganadores', () => {
     expect(() => removeGame(db, ev, games[0]!.id)).toThrow(/no se puede quitar/);
     removeGame(db, ev, games[4]!.id);
     expect(listGames(db, ev).map((g) => g.position)).toEqual([1, 2, 3, 4]);
-    expect(() => { nextGame(db, ev); nextGame(db, ev); nextGame(db, ev); nextGame(db, ev); }).toThrow(/último juego/);
   });
 });
 
@@ -259,5 +259,54 @@ describe('recuperación de sesión completa', () => {
     expect(listCards(db, ev, 0, 10).total).toBe(1);
     expect(listPatterns(db).filter((p) => p.isBuiltin)).toHaveLength(listPatterns(db).filter((p) => p.isBuiltin).length);
     db.close();
+  });
+});
+
+describe('terminar juego (con o sin ganador)', () => {
+  it('termina sin ganador y pasa al siguiente; el último cierra la secuencia', () => {
+    const { db, ev } = setup();
+    addCall(db, ev, 10);
+    expect(finishGame(db, ev)?.name).toBe('Juego 2');
+    expect(listGames(db, ev)[0]!.finished).toBe(true);
+    finishGame(db, ev);
+    finishGame(db, ev);
+    expect(finishGame(db, ev)).toBeNull(); // terminó el último (sin ganadores)
+    expect(getCurrentGame(db, ev)).toBeNull();
+    expect(allGamesFinished(db, ev)).toBe(true);
+    expect(addCall(db, ev, 11)).toMatchObject({ ok: false, code: 'terminado' });
+    expect(() => finishGame(db, ev)).toThrow(/No hay un juego en curso/);
+  });
+
+  it('se puede reabrir un juego terminado', () => {
+    const { db, ev } = setup();
+    const first = listGames(db, ev)[0]!;
+    finishGame(db, ev);
+    setCurrentGame(db, ev, first.id);
+    expect(getCurrentGame(db, ev)?.game.id).toBe(first.id);
+    expect(listGames(db, ev)[0]!.finished).toBe(false);
+    expect(allGamesFinished(db, ev)).toBe(false);
+  });
+
+  it('al terminar salta juegos ya terminados', () => {
+    const { db, ev } = setup();
+    const g = listGames(db, ev);
+    setCurrentGame(db, ev, g[1]!.id);
+    finishGame(db, ev); // termina el 2 → pasa al 3
+    expect(getCurrentGame(db, ev)?.game.id).toBe(g[2]!.id);
+    finishGame(db, ev); // 3 → 4
+    finishGame(db, ev); // 4 → vuelve al 1 (pendiente)
+    expect(getCurrentGame(db, ev)?.game.id).toBe(g[0]!.id);
+  });
+
+  it('evento sin juegos (versión anterior): carga la secuencia inicial', () => {
+    const db = openDatabase(':memory:');
+    ensureBuiltinPatterns(db);
+    const ev = createEvent(db, { name: 'Viejo', date: '2026-11-07', seriesCode: 'V', accumulateCalls: true }, { defaultSequence: false }).id;
+    expect(listGames(db, ev)).toHaveLength(0);
+    expect(addCall(db, ev, 5).ok).toBe(true); // sin juegos se puede cantar igual
+    loadDefaultSequence(db, ev, DEFAULT_SEQUENCE);
+    expect(listGames(db, ev).map((x) => x.patternName)).toEqual(DEFAULT_SEQUENCE);
+    expect(getCurrentGame(db, ev)?.index).toBe(1);
+    expect(() => loadDefaultSequence(db, ev, DEFAULT_SEQUENCE)).toThrow(/ya tiene juegos/);
   });
 });

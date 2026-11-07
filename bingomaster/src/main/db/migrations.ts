@@ -76,4 +76,8 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX cards_own_seq ON cards(event_id, own_seq);
   CREATE UNIQUE INDEX patterns_builtin_name ON patterns(name) WHERE is_builtin = 1;
   `,
+  // 3: juegos terminados (con o sin ganador).
+  `
+  ALTER TABLE games ADD COLUMN finished_at TEXT;
+  `,
 ];
