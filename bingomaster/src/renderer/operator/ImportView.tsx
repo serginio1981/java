@@ -59,6 +59,17 @@ export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Ta
   const [expected, setExpected] = useState<number | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [failed, setFailed] = useState<{ img: Img; key: string | null; error: string } | null>(null);
+  const [askConsent, setAskConsent] = useState<{ img: Img; key: string | null } | null>(null);
+
+  /** Envía la foto al proveedor de IA (requiere consentimiento ya dado). */
+  const read = useCallback(async (img: Img, key: string | null) => {
+    setBusy(state.settings.doubleRead ? 'Leyendo con IA (doble lectura)…' : 'Leyendo con IA…');
+    const r = await window.bingo.invoke('import:read', { base64: img.base64, mediaType: img.mediaType, expected });
+    setBusy(null);
+    if (!r.ok) { setFailed({ img, key, error: r.error }); return; }
+    r.warnings.forEach((w) => toast('error', w));
+    setReview({ img, key, method: 'ia', double: r.doubleRead, items: r.cards.map(fromReading) });
+  }, [expected, state.settings.doubleRead]);
 
   const start = useCallback(async (img: Img, key: string | null) => {
     setFailed(null);
@@ -68,13 +79,9 @@ export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Ta
       toast('info', 'Sin API key: transcriba los cartones mirando la foto.');
       return;
     }
-    setBusy(state.settings.doubleRead ? 'Leyendo con IA (doble lectura)…' : 'Leyendo con IA…');
-    const r = await window.bingo.invoke('import:read', { base64: img.base64, mediaType: img.mediaType, expected });
-    setBusy(null);
-    if (!r.ok) { setFailed({ img, key, error: r.error }); return; }
-    r.warnings.forEach((w) => toast('error', w));
-    setReview({ img, key, method: 'ia', double: r.doubleRead, items: r.cards.map(fromReading) });
-  }, [expected, state.settings.apiKeyConfigured, state.settings.doubleRead]);
+    if (!state.settings.aiConsent) { setAskConsent({ img, key }); return; }
+    await read(img, key);
+  }, [expected, read, state.settings.apiKeyConfigured, state.settings.aiConsent]);
 
   if (review) {
     return <Review review={review} setReview={setReview} onDone={(saved) => {
@@ -118,6 +125,28 @@ export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Ta
         </section>
       </div>
       {busy && <div className="feedback info big">⏳ {busy}</div>}
+      {askConsent && (
+        <div className="modal-backdrop">
+          <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="consent-t">
+            <h2 id="consent-t">Envío de la foto al proveedor de IA</h2>
+            <p>Para leer los cartones, la foto se enviará de forma cifrada a <b>Anthropic</b> (proveedor del modelo Claude, en Estados Unidos), usando su API key. La foto no pasa por servidores de Bingo Master.</p>
+            <ul className="small">
+              <li>Fotografíe solo los cartones, sin personas ni documentos alrededor.</li>
+              <li>El tratamiento de la foto por Anthropic se rige por los términos que usted aceptó al obtener su API key.</li>
+              <li>Si no acepta, puede ingresar los cartones a mano sin enviar nada.</li>
+            </ul>
+            <p><button className="link" onClick={() => void call('help:openPrivacy')}>Ver la política de privacidad</button></p>
+            <div className="row">
+              <button className="primary" onClick={async () => {
+                const pending = askConsent;
+                setAskConsent(null);
+                if (await call('settings:update', { aiConsent: true })) void read(pending.img, pending.key);
+              }}>Acepto y enviar</button>
+              <button onClick={() => { const p = askConsent; setAskConsent(null); setReview({ img: p.img, key: p.key, method: 'manual', double: false, items: Array.from({ length: expected ?? 1 }, () => emptyItem()) }); }}>No, transcribir a mano</button>
+            </div>
+          </div>
+        </div>
+      )}
       {failed && (
         <div className="feedback error">
           {failed.error}{' '}

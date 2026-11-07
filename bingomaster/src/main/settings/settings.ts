@@ -7,6 +7,9 @@ import { getMeta, setMeta, type Db } from '../db/database';
 import { appError } from '../errors';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
+/** Si cambia lo que se envía al proveedor de IA, subir la versión para volver a pedir consentimiento. */
+export const CONSENT_VERSION = '1';
+export const PRIVACY_URL = 'https://github.com/serginio1981/java/blob/master/bingomaster/PRIVACIDAD.md';
 
 export interface SafeStorageLike {
   isEncryptionAvailable(): boolean;
@@ -31,6 +34,7 @@ export class Settings {
       encryptionAvailable: this.safe.isEncryptionAvailable(),
       encryptionBackend: backend,
       importFolder: this.importFolder(),
+      aiConsent: getMeta(this.db, 'ai.consent') === CONSENT_VERSION,
     };
   }
 
@@ -46,13 +50,14 @@ export class Settings {
     return getMeta(this.db, 'import.folder') ?? '';
   }
 
-  update(u: { model?: string; doubleRead?: boolean }): void {
+  update(u: { model?: string; doubleRead?: boolean; aiConsent?: boolean }): void {
     if (u.model !== undefined) {
       const m = u.model.trim();
       if (m && !/^[A-Za-z0-9._:@/-]{3,100}$/.test(m)) throw appError('ajustes', 'Identificador de modelo inválido');
       setMeta(this.db, 'ai.model', m || null);
     }
     if (u.doubleRead !== undefined) setMeta(this.db, 'ai.doubleRead', u.doubleRead ? '1' : null);
+    if (u.aiConsent !== undefined) setMeta(this.db, 'ai.consent', u.aiConsent ? CONSENT_VERSION : null);
   }
 
   setImportFolder(path: string | null): void {

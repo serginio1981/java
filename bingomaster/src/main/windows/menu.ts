@@ -1,4 +1,5 @@
-import { app, dialog, Menu, type BrowserWindow, type MenuItemConstructorOptions } from 'electron';
+import { app, dialog, Menu, shell, type BrowserWindow, type MenuItemConstructorOptions } from 'electron';
+import { PRIVACY_URL } from '../settings/settings';
 import { openManual } from './windows';
 
 /**
@@ -51,6 +52,7 @@ export function buildMenu(opts: {
         { label: 'Manual de usuario', accelerator: 'F1', click: () => openManual() },
         { label: 'Atajos de teclado', click: () => openManual('atajos') },
         { label: 'Problemas frecuentes', click: () => openManual('problemas') },
+        { label: 'Política de privacidad (en el navegador)', click: () => void shell.openExternal(PRIVACY_URL) },
         { type: 'separator' },
         {
           label: 'Acerca de BingoMaster',

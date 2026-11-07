@@ -103,6 +103,8 @@ export interface SettingsView {
   encryptionAvailable: boolean;
   encryptionBackend: string | null;
   importFolder: string;
+  /** El operador aceptó el aviso de envío de fotos al proveedor de IA. */
+  aiConsent: boolean;
 }
 
 export interface OperatorState extends PublicState {
@@ -222,12 +224,13 @@ export interface Commands {
   'data:restore': { args: []; result: Result<{ events: number; cards: number }> };
   // Ayuda
   'help:openManual': { args: [string | null]; result: Result };
+  'help:openPrivacy': { args: []; result: Result };
   // Ventana pública
   'public:open': { args: [number | null]; result: Result };
   'public:close': { args: []; result: Result };
   'public:toggleFullscreen': { args: []; result: Result };
   // Ajustes e importación con IA
-  'settings:update': { args: [{ model?: string; doubleRead?: boolean }]; result: Result };
+  'settings:update': { args: [{ model?: string; doubleRead?: boolean; aiConsent?: boolean }]; result: Result };
   'settings:setApiKey': { args: [string]; result: Result };
   'settings:clearApiKey': { args: []; result: Result };
   'import:chooseFolder': { args: []; result: Result };

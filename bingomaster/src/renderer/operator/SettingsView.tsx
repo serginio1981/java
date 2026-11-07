@@ -26,6 +26,11 @@ export function SettingsView({ state }: { state: OperatorState }) {
           <input value={model} onChange={(e) => setModel(e.target.value)} onBlur={() => model !== s.model && void call('settings:update', { model })} spellCheck={false} />
         </label>
         <small className="muted">Debe ser un modelo con visión y salidas estructuradas. Por defecto claude-opus-5-5. Verifique los identificadores vigentes en docs.claude.com.</small>
+        <p className="muted small">
+          Aviso de privacidad para el envío de fotos: {s.aiConsent ? 'aceptado' : 'pendiente (se pide antes de la primera lectura)'}.{' '}
+          {s.aiConsent && <button className="link" onClick={() => void call('settings:update', { aiConsent: false })}>Retirar consentimiento</button>}{' '}
+          <button className="link" onClick={() => void call('help:openPrivacy')}>Ver política de privacidad</button>
+        </p>
         <label className="chk"><input type="checkbox" checked={s.doubleRead} onChange={(e) => void call('settings:update', { doubleRead: e.target.checked })} /> Doble lectura (dos llamadas independientes; duplica el costo por foto)</label>
       </section>
       <section className="panel form">

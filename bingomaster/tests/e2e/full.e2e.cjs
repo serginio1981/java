@@ -287,6 +287,11 @@ async function typeCard(op, series, folio, grid) {
   await tab(op, 'Importar con IA');
   await shot(op, '8d-importar', 'importar');
   await op.setInputFiles('.drop input[type=file]', path.join(SHOTS, '6-publica-bingo.png'));
+  // Aviso de privacidad antes del primer envío: no sale nada hasta aceptar
+  await op.waitForSelector('[role=alertdialog]:has-text("Envío de la foto al proveedor de IA")');
+  assert.equal(apiRequests.length, 0, 'no se envía nada antes del consentimiento');
+  await shot(op, '8e-consentimiento-ia');
+  await op.click('[role=alertdialog] button:has-text("Acepto y enviar")');
   await op.waitForSelector('.review', { timeout: 15000 });
   assert.equal(apiRequests.length, 2, 'doble lectura = 2 llamadas');
   const req0 = apiRequests[0];

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, screen, session } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, screen, session, shell } from 'electron';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, watch, type FSWatcher } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import type { CommandName, Commands, OperatorState, Overlay, Result } from '../shared/ipc/contract';
@@ -14,7 +14,7 @@ import { addGame, finishGame, loadDefaultSequence, moveGame, removeGame, setCurr
 import { readCards } from './import-ai/vision';
 import { createPattern, ensureBuiltinPatterns, removePattern, updatePattern } from './patterns/patterns';
 import { renderPdf } from './printing/pdf';
-import { Settings } from './settings/settings';
+import { PRIVACY_URL, Settings } from './settings/settings';
 import { runSmokeTest } from './smoke';
 import { buildOperatorState, toPublic } from './state/state';
 import { checkClaim, registerWinner, setWinnerNote } from './winners/winners';
@@ -216,6 +216,7 @@ function main(): void {
       notice = `Respaldo restaurado (${info.events} evento(s), ${info.cards} cartón(es)). Copia de los datos anteriores: ${safety}`;
       return { ok: true, events: info.events, cards: info.cards };
     });
+    handle('help:openPrivacy', async () => { await shell.openExternal(PRIVACY_URL); return ok; }, { mutates: false });
     handle('help:openManual', (section) => { openManual(section && /^[a-z-]{1,30}$/.test(section) ? section : undefined); return ok; }, { mutates: false });
     handle('public:open', (displayId) => { publicWin.open(displayId); return ok; });
     handle('public:close', () => { publicWin.close(); return ok; });
@@ -265,7 +266,9 @@ function main(): void {
       setMeta(db, 'import.imported', JSON.stringify([...s].slice(-5000)));
       return ok;
     }, { mutates: false });
-    handle('import:read', (p) => readCards({
+    handle('import:read', (p) => !settings.view().aiConsent
+      ? { ok: false, code: 'consentimiento', error: 'Debe aceptar el aviso de privacidad antes de enviar fotos al proveedor de IA' }
+      : readCards({
       apiKey: settings.apiKey(), model: settings.model(), doubleRead: settings.doubleRead(),
       base64: p.base64, mediaType: p.mediaType, expected: p.expected,
     }), { mutates: false });
