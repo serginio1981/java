@@ -91,6 +91,8 @@ Requiere `playwright` instalado aparte.
 
 ### Microsoft Store
 
+Política de privacidad para la ficha de la Store: [`PRIVACIDAD.md`](PRIVACIDAD.md).
+
 `electron-builder.yml` → sección `appx` con la identidad de Partner Center (Bingo Master,
 `SergioAedoMena.BingoMaster`). La CI genera `BingoMaster-Store-<versión>.appx` (sin firmar: la
 Store lo firma) como artefacto **BingoMaster-Store**; se sube en Partner Center → Envíos →
