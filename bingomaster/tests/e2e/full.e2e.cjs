@@ -42,6 +42,15 @@ const api = http.createServer((req, res) => {
     });
     const text = JSON.stringify({ cartones: [card('000777', [6, 7, 8, 9, 10]), card('000778', [6, 7, null, 9, 11])] });
     res.setHeader('content-type', 'application/json');
+    // Servidor compatible con OpenAI (para probar el cambio de proveedor)
+    if (req.url.endsWith('/chat/completions')) {
+      const t = JSON.stringify({ cartones: [card('000901', [6, 7, 8, 9, 10])] });
+      return res.end(JSON.stringify({ id: 'c', object: 'chat.completion', created: 1, model: 'llava-test',
+        choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: t, refusal: null } }] }));
+    }
+    if (req.method === 'GET' && req.url.endsWith('/models')) {
+      return res.end(JSON.stringify({ object: 'list', data: [{ id: 'llava-test', object: 'model', created: 1, owned_by: 'local' }] }));
+    }
     res.end(JSON.stringify({ id: 'msg_1', type: 'message', role: 'assistant', model: 'x', stop_reason: 'end_turn', stop_sequence: null,
       content: [{ type: 'text', text }], usage: { input_tokens: 1, output_tokens: 1 } }));
   });
@@ -268,7 +277,8 @@ async function typeCard(op, series, folio, grid) {
   await tab(op, 'Ajustes');
   await op.fill('input[type=password]', 'sk-ant-prueba');
   await op.click('button:has-text("Guardar cifrada")');
-  await op.waitForSelector('text=API key configurada');
+  await op.waitForSelector('text=Clave guardada (cifrada)');
+  await op.waitForSelector('text=Anthropic (Claude) listo para leer cartones');
   await shot(op, '8c-ajustes', 'ajustes');
   // Respaldo y restauración (diálogos simulados)
   const bkPath = path.join(SHOTS, 'respaldo.db');
@@ -317,6 +327,29 @@ async function typeCard(op, series, folio, grid) {
   await readings.nth(1).locator('button:has-text("Confirmar y guardar")').click();
   await op.waitForSelector('.import-grid', { timeout: 5000 });
   await waitToast(op, /2 cartón\(es\) guardado/);
+
+  // ---------- Cambiar de proveedor de IA: servidor compatible con OpenAI ----------
+  await tab(op, 'Ajustes');
+  await op.selectOption('select:has(option[value=compatible])', 'compatible');
+  await op.waitForSelector('text=URL del servidor');
+  await op.fill('input[placeholder="http://localhost:11434/v1"]', `http://127.0.0.1:${api.address().port}/v1`);
+  await op.click('button:has-text("Listar modelos")');
+  await op.waitForSelector('select[aria-label="Modelos disponibles"]');
+  await op.selectOption('select[aria-label="Modelos disponibles"]', 'llava-test');
+  await op.waitForSelector('text=listo para leer cartones');
+  await shot(op, '8f-ajustes-proveedor', 'ajustes-proveedor');
+  apiRequests = [];
+  await tab(op, 'Importar con IA');
+  await op.setInputFiles('.drop input[type=file]', path.join(SHOTS, '6-publica-bingo.png'));
+  // El consentimiento es por proveedor: se vuelve a pedir y nombra al nuevo destinatario
+  await op.waitForSelector('[role=alertdialog]:has-text("servidor configurado")');
+  assert.equal(apiRequests.length, 0);
+  await op.click('[role=alertdialog] button:has-text("Acepto y enviar")');
+  await op.waitForSelector('.review', { timeout: 15000 });
+  assert.ok(apiRequests.some((r) => r.url.endsWith('/v1/chat/completions')), 'la lectura fue al servidor compatible');
+  assert.equal(await op.locator('.reading .ce-ids input').nth(1).inputValue(), '000901');
+  await op.click('button:has-text("Terminar / descartar pendientes")');
+  await op.waitForSelector('.import-grid');
 
   // ---------- Red bloqueada en ventanas ----------
   assert.equal(await op.evaluate(() => fetch('https://example.com').then(() => 'abierta', () => 'bloqueada')), 'bloqueada');

@@ -1,6 +1,6 @@
 # Política de Privacidad — Bingo Master
 
-**Versión:** 1.0
+**Versión:** 1.1
 **Fecha de entrada en vigor:** 7 de noviembre de 2026
 **Aplicación:** Bingo Master para Windows (distribuida a través de Microsoft Store y mediante instalador)
 
@@ -35,8 +35,10 @@ propias políticas, indicadas en esta Política.
   comunicación, transmisión o eliminación.
 - **Operador:** la persona u organización que instala y usa la Aplicación para conducir bingos.
 - **Jugador:** la persona que participa en un bingo conducido con la Aplicación.
-- **Proveedor de IA:** Anthropic, PBC y sus afiliadas, proveedor del servicio de lectura de
-  imágenes que usa la función opcional de importación de cartones.
+- **Proveedor de IA:** el servicio de inteligencia artificial que el Operador elija para la
+  función opcional de importación de cartones: Anthropic, PBC (Claude), OpenAI (GPT), Google LLC
+  (Gemini), o un servidor compatible con la API de OpenAI que el propio Operador configure (por
+  ejemplo, un servidor local con Ollama o LM Studio).
 
 ## 4. Principio general: tratamiento local
 
@@ -63,7 +65,7 @@ importación con IA (sección 6).
 | Números cantados y ganadores registrados (serie, folio, juego, cantidad de números) | Llevar el registro del juego | Equipo del Operador | No |
 | Imagen de la cámara (solo al encenderla el Operador) | Fotografiar cartones externos | No se graba video. Solo se conserva la foto que el Operador captura | Solo si el Operador solicita su lectura con IA (sección 6) |
 | Fotografías de cartones externos | Leer serie, folio y números del cartón | Equipo del Operador | Solo si el Operador solicita su lectura con IA (sección 6) |
-| Clave de API del Proveedor de IA ("API key") | Autenticar al Operador ante el Proveedor de IA | Equipo del Operador, cifrada | Solo hacia el Proveedor de IA, al usar la función de importación |
+| Claves de API ("API keys") de los Proveedores de IA que configure el Operador | Autenticar al Operador ante el Proveedor de IA | Equipo del Operador, cifradas | Cada clave solo hacia su Proveedor de IA, al usar la función de importación |
 | Archivos de respaldo de la base de datos | Respaldar y restaurar la información | Donde el Operador decida guardarlos | Solo si el Operador los copia o comparte |
 
 **Datos de Jugadores.** La Aplicación **no solicita** nombres, RUT, teléfonos, correos ni otros
@@ -79,27 +81,38 @@ almacenados en su equipo bajo su responsabilidad.
 La Aplicación ofrece una función **opcional** para leer cartones de bingo a partir de una
 fotografía. Esta función:
 
-1. Solo opera si el Operador ingresa **su propia API key** del Proveedor de IA.
-2. Antes del primer uso muestra un **aviso que el Operador debe aceptar expresamente**, que
-   informa que la fotografía se enviará al Proveedor de IA.
-3. Envía la fotografía **directamente desde el equipo del Operador al Proveedor de IA**, por un
-   canal cifrado (HTTPS), sin pasar por servidores del Desarrollador.
+1. Solo opera si el Operador **elige un Proveedor de IA** y lo configura con **su propia API
+   key** (o, en el caso de un servidor compatible, con la dirección de ese servidor).
+2. Antes del primer uso con **cada** Proveedor de IA muestra un **aviso que el Operador debe
+   aceptar expresamente**, que identifica a quién se enviará la fotografía.
+3. Envía la fotografía **directamente desde el equipo del Operador al Proveedor de IA elegido**,
+   sin pasar por servidores del Desarrollador. Con los proveedores en la nube la conexión es
+   cifrada (HTTPS); con un servidor compatible, la conexión depende de la dirección que configure
+   el Operador.
 4. Recibe como respuesta la serie, el folio y los números leídos, que el Operador **debe revisar
    y confirmar** antes de guardarlos.
 
-### 6.2 Destinatario y condiciones
+### 6.2 Destinatarios y condiciones
 
-- **Destinatario:** Anthropic, PBC (Estados Unidos de América) y sus afiliadas.
+La fotografía se envía **solo al Proveedor de IA que el Operador haya elegido** en Ajustes:
+
+| Proveedor de IA | Destinatario | Condiciones aplicables |
+|---|---|---|
+| Anthropic (Claude) | Anthropic, PBC y sus afiliadas (Estados Unidos) | [Términos Comerciales](https://www.anthropic.com/legal/commercial-terms) y [Política de Privacidad](https://www.anthropic.com/legal/privacy) de Anthropic |
+| OpenAI (GPT) | OpenAI y sus afiliadas (Estados Unidos) | Términos y política de privacidad de la plataforma de API de OpenAI (openai.com) |
+| Google (Gemini) | Google LLC y sus afiliadas (Estados Unidos) | Términos de la API de Gemini y política de privacidad de Google (ai.google.dev y policies.google.com) |
+| Servidor compatible | El servidor cuya dirección configure el Operador | Las condiciones de quien opere ese servidor. Si es un servidor local en el mismo equipo o red, la fotografía no sale a internet |
+
 - La relación entre el Operador y el Proveedor de IA se rige por los términos que el Operador
-  acepta al obtener su API key. Al momento de redactar esta Política, los
-  [Términos Comerciales de Anthropic](https://www.anthropic.com/legal/commercial-terms) (vigentes
-  desde el 17 de junio de 2025) establecen que Anthropic no puede entrenar modelos con el
-  contenido del cliente y que los datos enviados se tratan conforme a su Anexo de Tratamiento de
-  Datos. Ver también la [Política de Privacidad de Anthropic](https://www.anthropic.com/legal/privacy).
-  El Desarrollador no controla esos documentos, que pueden cambiar. Se recomienda revisarlos.
-- **Transferencia internacional:** el uso de esta función implica la transferencia de la
-  fotografía a servidores ubicados fuera de Chile, posiblemente en los Estados Unidos de América
-  u otros países donde opere el Proveedor de IA.
+  acepta al obtener su API key o al usar su servidor. Por ejemplo, al momento de redactar esta
+  Política, los Términos Comerciales de Anthropic (vigentes desde el 17 de junio de 2025)
+  establecen que Anthropic no puede entrenar modelos con el contenido del cliente. Cada
+  proveedor define sus propias reglas sobre conservación y uso de los datos, y pueden cambiar:
+  se recomienda revisarlas antes de elegir un proveedor. El Desarrollador no controla esos
+  documentos.
+- **Transferencia internacional:** con los proveedores en la nube, la fotografía se transfiere a
+  servidores ubicados fuera de Chile, posiblemente en los Estados Unidos de América u otros
+  países donde opere el proveedor elegido.
 
 ### 6.3 Recomendaciones y alternativas
 
@@ -113,8 +126,9 @@ fotografía. Esta función:
   para ejecutar las funciones de la Aplicación que el propio Operador utiliza.
 - **Importación con IA:** el envío de fotografías al Proveedor de IA se basa en el
   **consentimiento expreso** del Operador, otorgado en el aviso previo al primer uso y renovado
-  cada vez que solicita la lectura de una foto. El Operador puede dejar de usar la función en
-  cualquier momento y borrar su API key desde Ajustes.
+  cada vez que solicita la lectura de una foto. El consentimiento se otorga por separado para
+  cada Proveedor de IA. El Operador puede retirarlo, dejar de usar la función o borrar sus API
+  keys en cualquier momento desde Ajustes.
 
 ## 8. Permisos del sistema
 
@@ -131,8 +145,8 @@ importación.
 
 - **Almacenamiento local** en una base de datos dentro de la carpeta de datos de aplicación del
   usuario de Windows.
-- **API key cifrada** con el sistema de protección de datos del propio Windows. Nunca se muestra
-  ni se envía a otro destino que el Proveedor de IA.
+- **API keys cifradas** con el sistema de protección de datos del propio Windows. Nunca se muestran
+  y cada una se envía solo a su Proveedor de IA.
 - **Comunicaciones cifradas (HTTPS)** con el Proveedor de IA.
 - **Sin servidores del Desarrollador**, lo que elimina el riesgo de filtraciones desde un servidor
   central.
@@ -145,7 +159,7 @@ Se recomienda al Operador proteger su equipo con una contraseña de usuario y ci
 El Desarrollador **no vende, no arrienda, no cede ni comparte** datos personales con terceros.
 Los únicos terceros que pueden recibir datos son:
 
-1. **El Proveedor de IA**, solo cuando el Operador usa la función de importación (sección 6).
+1. **El Proveedor de IA elegido por el Operador**, solo cuando el Operador usa la función de importación (sección 6).
 2. **Microsoft Corporation**, en su calidad de operador de Microsoft Store y de Windows, respecto
    de los datos que Microsoft trate por sí misma según su
    [Declaración de Privacidad](https://www.microsoft.com/en-us/privacy/privacystatement) y la
@@ -162,7 +176,7 @@ Los datos se conservan en el equipo del Operador hasta que este decida eliminarl
 
 - **Versión de Microsoft Store:** al desinstalar la Aplicación, Windows elimina sus datos.
 - **Versión con instalador:** después de desinstalar, elimine la carpeta `%APPDATA%\BingoMaster`.
-- **API key:** se puede borrar en cualquier momento desde Ajustes → "Borrar API key".
+- **API keys:** cada una se puede borrar en cualquier momento desde Ajustes → "Borrar API key", eligiendo el proveedor.
 - **Respaldos:** los archivos de respaldo creados por el Operador deben eliminarse por separado.
 
 Las fotografías enviadas al Proveedor de IA se conservan por este conforme a sus propios términos

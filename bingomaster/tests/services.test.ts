@@ -15,6 +15,7 @@ import { DEFAULT_SEQUENCE } from '../src/main/events/events';
 import { createPattern, ensureBuiltinPatterns, findPatternByName, listPatterns, removePattern } from '../src/main/patterns/patterns';
 import { buildPrintHtml } from '../src/main/printing/html';
 import { buildOperatorState } from '../src/main/state/state';
+import { Settings } from '../src/main/settings/settings';
 import { checkClaim, listWinners, registerWinner } from '../src/main/winners/winners';
 
 const EXT_GRID: Grid = [
@@ -173,7 +174,7 @@ describe('juegos, validación y ganadores', () => {
     ext(db, ev, 'A', '1');
     [1, 16].forEach((n) => addCall(db, ev, n));
     const s = buildOperatorState(db, {
-      overlay: null, settings: { model: '', doubleRead: false, apiKeyConfigured: false, encryptionAvailable: false, encryptionBackend: null, importFolder: '', aiConsent: false },
+      overlay: null, settings: new Settings(db, { isEncryptionAvailable: () => false, encryptString: () => Buffer.alloc(0), decryptString: () => '' }).view(),
       displays: [], publicWindow: { open: false, displayId: null, fullscreen: false }, dataPath: '', notice: null,
     });
     expect(s.near).toEqual({ complete: 0, oneAway: 1 });

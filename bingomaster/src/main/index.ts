@@ -11,7 +11,7 @@ import { backupTo, getMeta, inspectBackup, openDatabase, setMeta, type Db } from
 import { appError } from './errors';
 import { activateEvent, createEvent, DEFAULT_SEQUENCE, ensureActiveEvent, getActiveEvent, updateEvent } from './events/events';
 import { addGame, finishGame, loadDefaultSequence, moveGame, removeGame, setCurrentGame, updateGame } from './games/games';
-import { readCards } from './import-ai/vision';
+import { listModels, readCards } from './import-ai/vision';
 import { createPattern, ensureBuiltinPatterns, removePattern, updatePattern } from './patterns/patterns';
 import { renderPdf } from './printing/pdf';
 import { PRIVACY_URL, Settings } from './settings/settings';
@@ -266,12 +266,11 @@ function main(): void {
       setMeta(db, 'import.imported', JSON.stringify([...s].slice(-5000)));
       return ok;
     }, { mutates: false });
-    handle('import:read', (p) => !settings.view().aiConsent
+    handle('import:read', (p) => !settings.consent()
       ? { ok: false, code: 'consentimiento', error: 'Debe aceptar el aviso de privacidad antes de enviar fotos al proveedor de IA' }
-      : readCards({
-      apiKey: settings.apiKey(), model: settings.model(), doubleRead: settings.doubleRead(),
-      base64: p.base64, mediaType: p.mediaType, expected: p.expected,
-    }), { mutates: false });
+      : readCards({ ...settings.providerConfig(), doubleRead: settings.doubleRead() },
+        { base64: p.base64, mediaType: p.mediaType, expected: p.expected }), { mutates: false });
+    handle('import:listModels', () => listModels(settings.providerConfig()), { mutates: false });
   }
 
   app.whenReady().then(() => {

@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FolderFile, OperatorState } from '../../shared/ipc/contract';
 import type { ReviewedCard } from '../../shared/import-ai/reading';
+import { PROVIDERS } from '../../shared/import-ai/providers';
 import { call, toast } from '../ui/api';
 import { CardEditor, draftFrom, draftGrid, draftIsValid, type CardDraft } from '../ui/CardEditor';
 import type { Tab } from './OperatorApp';
@@ -55,6 +56,7 @@ interface Item {
 }
 
 export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Tab) => void }) {
+  const prov = PROVIDERS[state.settings.provider];
   const [review, setReview] = useState<{ img: Img; key: string | null; items: Item[]; method: 'ia' | 'manual'; double: boolean } | null>(null);
   const [expected, setExpected] = useState<number | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -63,25 +65,25 @@ export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Ta
 
   /** Envía la foto al proveedor de IA (requiere consentimiento ya dado). */
   const read = useCallback(async (img: Img, key: string | null) => {
-    setBusy(state.settings.doubleRead ? 'Leyendo con IA (doble lectura)…' : 'Leyendo con IA…');
+    setBusy(`Leyendo con ${prov.label}${state.settings.doubleRead ? ' (doble lectura)' : ''}…`);
     const r = await window.bingo.invoke('import:read', { base64: img.base64, mediaType: img.mediaType, expected });
     setBusy(null);
     if (!r.ok) { setFailed({ img, key, error: r.error }); return; }
     r.warnings.forEach((w) => toast('error', w));
     setReview({ img, key, method: 'ia', double: r.doubleRead, items: r.cards.map(fromReading) });
-  }, [expected, state.settings.doubleRead]);
+  }, [expected, state.settings.doubleRead, prov.label]);
 
   const start = useCallback(async (img: Img, key: string | null) => {
     setFailed(null);
     const n = expected ?? 1;
-    if (!state.settings.apiKeyConfigured) {
+    if (!state.settings.aiReady) {
       setReview({ img, key, method: 'manual', double: false, items: Array.from({ length: n }, () => emptyItem()) });
-      toast('info', 'Sin API key: transcriba los cartones mirando la foto.');
+      toast('info', 'La IA no está configurada: transcriba los cartones mirando la foto.');
       return;
     }
     if (!state.settings.aiConsent) { setAskConsent({ img, key }); return; }
     await read(img, key);
-  }, [expected, read, state.settings.apiKeyConfigured, state.settings.aiConsent]);
+  }, [expected, read, state.settings.aiReady, state.settings.aiConsent]);
 
   if (review) {
     return <Review review={review} setReview={setReview} onDone={(saved) => {
@@ -93,9 +95,9 @@ export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Ta
 
   return (
     <div className="import">
-      {!state.settings.apiKeyConfigured && (
+      {!state.settings.aiReady && (
         <div className="feedback info">
-          La lectura con IA no está disponible (sin API key). Puede transcribir mirando la foto,
+          La lectura con IA no está configurada ({PROVIDERS[state.settings.provider].label}). Puede transcribir mirando la foto,
           usar el <button className="link" onClick={() => goTo('cartones')}>ingreso manual</button> o
           configurar la clave en <button className="link" onClick={() => goTo('ajustes')}>Ajustes</button>.
         </div>
@@ -128,11 +130,11 @@ export function ImportView({ state, goTo }: { state: OperatorState; goTo: (t: Ta
       {askConsent && (
         <div className="modal-backdrop">
           <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="consent-t">
-            <h2 id="consent-t">Envío de la foto al proveedor de IA</h2>
-            <p>Para leer los cartones, la foto se enviará de forma cifrada a <b>Anthropic</b> (proveedor del modelo Claude, en Estados Unidos), usando su API key. La foto no pasa por servidores de Bingo Master.</p>
+            <h2 id="consent-t">Envío de la foto al proveedor de IA: {prov.label}</h2>
+            <p>Para leer los cartones, la foto se enviará {prov.id === 'compatible' ? <>al <b>servidor configurado</b> ({state.settings.baseUrl})</> : <>de forma cifrada a <b>{prov.recipient}</b></>}{prov.keyRequired ? ', usando su API key' : ''}. La foto no pasa por servidores de Bingo Master.</p>
             <ul className="small">
               <li>Fotografíe solo los cartones, sin personas ni documentos alrededor.</li>
-              <li>El tratamiento de la foto por Anthropic se rige por los términos que usted aceptó al obtener su API key.</li>
+              <li>El tratamiento de la foto se rige por los términos del proveedor que usted aceptó al obtener su API key (o por las condiciones de su propio servidor).</li>
               <li>Si no acepta, puede ingresar los cartones a mano sin enviar nada.</li>
             </ul>
             <p><button className="link" onClick={() => void call('help:openPrivacy')}>Ver la política de privacidad</button></p>

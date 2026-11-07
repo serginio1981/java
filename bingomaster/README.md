@@ -123,7 +123,10 @@ firmado: Windows SmartScreen pedirá "Más información → Ejecutar de todas fo
 - **Figuras como máscaras de 25 bits**: la evaluación de miles de cartones por número es
   barata. Medido: 100.000 cartones → ~27 ms por número cantado, ~36 ms buscar folio.
 - **PDF** con `printToPDF` desde una ventana oculta (offline).
-- **Importación con IA**: SDK oficial `@anthropic-ai/sdk` 1.6 desde el proceso main,
+- **Importación con IA, proveedor elegible** (Ajustes): Anthropic (`@anthropic-ai/sdk`), OpenAI y
+  servidores compatibles como Ollama/LM Studio (`openai`) y Google Gemini (`@google/genai`), todos
+  desde el proceso main, cada uno con su clave cifrada, modelo ("Listar modelos") y consentimiento.
+  Anthropic:
   salida estructurada con JSON Schema, `fallbacks: "default"` en modelos que lo aceptan.
   Modelo por defecto `claude-opus-5-5` (configurable). Las ventanas no tienen red.
 - **Permisos:** solo cámara (video) y solo para la ventana del operador.

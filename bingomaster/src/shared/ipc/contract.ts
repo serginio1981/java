@@ -5,6 +5,7 @@
  */
 import type { Grid } from '../bingo/grid';
 import type { Letter } from '../bingo/numbers';
+import type { ProviderId } from '../import-ai/providers';
 import type { ReviewedCard } from '../import-ai/reading';
 import type { PatternDef, PatternView } from '../patterns/patterns';
 
@@ -96,10 +97,24 @@ export interface CardSummary {
   nextOwnFolio: number;
 }
 
-export interface SettingsView {
+export interface ProviderSettings {
   model: string;
-  doubleRead: boolean;
   apiKeyConfigured: boolean;
+  consent: boolean;
+}
+
+export interface SettingsView {
+  /** Proveedor de IA elegido para leer cartones. */
+  provider: ProviderId;
+  providers: Record<ProviderId, ProviderSettings>;
+  /** URL del servidor compatible con OpenAI (solo proveedor "compatible"). */
+  baseUrl: string;
+  /** Datos del proveedor activo (atajos). */
+  model: string;
+  apiKeyConfigured: boolean;
+  /** El proveedor activo tiene todo lo necesario (clave, URL, modelo) para leer. */
+  aiReady: boolean;
+  doubleRead: boolean;
   encryptionAvailable: boolean;
   encryptionBackend: string | null;
   importFolder: string;
@@ -230,7 +245,8 @@ export interface Commands {
   'public:close': { args: []; result: Result };
   'public:toggleFullscreen': { args: []; result: Result };
   // Ajustes e importación con IA
-  'settings:update': { args: [{ model?: string; doubleRead?: boolean; aiConsent?: boolean }]; result: Result };
+  'settings:update': { args: [{ provider?: ProviderId; model?: string; baseUrl?: string; doubleRead?: boolean; aiConsent?: boolean }]; result: Result };
+  'import:listModels': { args: []; result: Result<{ models: string[] }> };
   'settings:setApiKey': { args: [string]; result: Result };
   'settings:clearApiKey': { args: []; result: Result };
   'import:chooseFolder': { args: []; result: Result };

@@ -78,10 +78,24 @@ export class ReadingError extends Error {
   constructor(public code: string, message: string) { super(message); }
 }
 
+/**
+ * Extrae el objeto JSON de la respuesta. Algunos modelos (sobre todo servidores
+ * compatibles sin salida estructurada) lo envuelven en ```json … ``` o en texto.
+ */
+export function extractJson(text: string): unknown {
+  const t = text.trim();
+  try { return JSON.parse(t); } catch { /* sigue */ }
+  const fence = /```(?:json)?\s*([\s\S]*?)```/i.exec(t);
+  if (fence?.[1]) { try { return JSON.parse(fence[1]); } catch { /* sigue */ } }
+  const a = t.indexOf('{');
+  const b = t.lastIndexOf('}');
+  if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch { /* sigue */ } }
+  throw new ReadingError('json_invalido', 'La respuesta no es JSON válido');
+}
+
 /** Interpreta el texto JSON devuelto por el modelo. Lanza ReadingError si no sirve. */
 export function parseReading(text: string): RawCard[] {
-  let data: unknown;
-  try { data = JSON.parse(text); } catch { throw new ReadingError('json_invalido', 'La respuesta no es JSON válido'); }
+  const data = extractJson(text);
   const list = (data as { cartones?: unknown })?.cartones;
   if (!Array.isArray(list)) throw new ReadingError('json_invalido', 'La respuesta no trae la lista de cartones');
   return list.slice(0, MAX_CARDS_PER_PHOTO).map((c) => {

@@ -34,7 +34,7 @@ FIGURAS Y SECUENCIA DE JUEGOS
 Arme la noche completa: primeros 3, línea, columna, diagonal, X, L, T, marco, cartón lleno y más. Cree sus propias figuras en el editor (figura fija, "cualquiera de varias" o "primeros N números") y reutilícelas en otros eventos. Pase de un juego al siguiente con un clic, con o sin ganador.
 
 CARTONES DE OTRO ORIGEN
-¿Se acabaron los cartones impresos? Registre cartones comerciales o de otra aplicación para validarlos igual que los propios: ingréselos a mano con el teclado numérico, o fotografíelos y deje que la inteligencia artificial los transcriba (función opcional). Usted siempre revisa y confirma cada cartón antes de guardarlo.
+¿Se acabaron los cartones impresos? Registre cartones comerciales o de otra aplicación para validarlos igual que los propios: ingréselos a mano con el teclado numérico, o fotografíelos y deje que la inteligencia artificial los transcriba (función opcional, con el proveedor de IA que usted elija). Usted siempre revisa y confirma cada cartón antes de guardarlo.
 
 PENSADO PARA LA NOCHE DEL EVENTO
 - Ingreso rápido con teclado numérico y avisos si un número ya salió o está fuera de rango.
@@ -46,7 +46,7 @@ PENSADO PARA LA NOCHE DEL EVENTO
 - Manual de usuario incluido en la aplicación (F1).
 
 IMPORTANTE
-Bingo Master es una herramienta para conducir bingos presenciales. No maneja dinero, premios ni apuestas. La lectura de cartones con inteligencia artificial es opcional, es la única función que usa internet y requiere una clave de API propia de Anthropic, que se contrata por separado. Sin ella, todas las demás funciones están disponibles.
+Bingo Master es una herramienta para conducir bingos presenciales. No maneja dinero, premios ni apuestas. La lectura de cartones con inteligencia artificial es opcional, es la única función que usa internet y funciona con el proveedor que usted elija: Anthropic (Claude), OpenAI (GPT), Google (Gemini) o un servidor compatible con OpenAI. Requiere su propia clave de API, que se contrata por separado con el proveedor. Sin ella, todas las demás funciones están disponibles.
 ```
 
 ---
@@ -77,7 +77,7 @@ Secuencia de juegos por evento con paso al siguiente juego con o sin ganador
 Varios ganadores por juego y ayuda para el desempate
 Indicadores para el operador: cartones que completan la figura y cartones a un número
 Registro de cartones externos por ingreso manual rápido
-Lectura opcional de cartones con IA desde webcam o foto, con revisión obligatoria
+Lectura opcional de cartones con IA (Claude, GPT, Gemini o servidor compatible) con revisión obligatoria
 Detección automática del proyector o segundo monitor
 Guardado automático y recuperación de la sesión si se cierra la aplicación
 Respaldo y restauración de toda la información

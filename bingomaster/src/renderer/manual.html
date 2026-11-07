@@ -209,7 +209,7 @@
 
 <section id="ia">
   <h2>12. Importar cartones con IA</h2>
-  <p>Es la forma rápida de registrar cartones externos: se fotografían y la IA (Claude, de Anthropic) lee serie, folio y números. Es el <b>único módulo que usa internet</b> y requiere una API key de Anthropic (sección 13). Sin API key o sin internet, use el ingreso manual o transcriba mirando la foto.</p>
+  <p>Es la forma rápida de registrar cartones externos: se fotografían y una IA lee serie, folio y números. Puede elegir el proveedor en Ajustes: <b>Anthropic (Claude)</b>, <b>OpenAI (GPT)</b>, <b>Google (Gemini)</b> o un <b>servidor compatible con OpenAI</b> (por ejemplo Ollama o LM Studio, incluso en el mismo equipo). Es el <b>único módulo que usa internet</b> y requiere su propia API key del proveedor elegido (sección 13). Sin configurarlo o sin internet, use el ingreso manual o transcriba mirando la foto.</p>
   <figure><img src="./manual/img/importar.jpg" alt="Importar con IA"><figcaption>Captura: guía, webcam, archivo o carpeta compartida.</figcaption></figure>
   <h3>Capturar</h3>
   <ul>
@@ -219,7 +219,7 @@
     <li><b>Carpeta compartida:</b> las fotos tomadas con el celular que lleguen a la carpeta configurada (por ejemplo sincronizada con OneDrive o Google Drive) aparecen en la lista; pulse "Usar".</li>
     <li>Si sabe cuántos cartones hay en la foto, indíquelo: mejora la lectura.</li>
   </ul>
-  <p>La primera vez que envíe una foto, la aplicación muestra un <b>aviso de privacidad</b>: la foto se enviará cifrada a Anthropic con su API key. Debe aceptarlo para continuar; si no lo acepta, puede transcribir el cartón a mano. El consentimiento se puede retirar en Ajustes.</p>
+  <p>La primera vez que envíe una foto, la aplicación muestra un <b>aviso de privacidad</b>: indica a qué proveedor se enviará la foto. Debe aceptarlo para continuar; si no lo acepta, puede transcribir el cartón a mano. El consentimiento se da por separado para cada proveedor y se puede retirar en Ajustes.</p>
   <h3>Revisar y confirmar (obligatorio)</h3>
   <p>Se muestran la foto y los cartones reconstruidos lado a lado. <b>Nada se guarda sin su confirmación.</b></p>
   <figure><img src="./manual/img/revision-ia.jpg" alt="Revisión de la lectura"><figcaption>Revisión: foto con zoom a la izquierda; cartones leídos y editables a la derecha.</figcaption></figure>
@@ -230,15 +230,17 @@
     <li>Si la serie + folio ya existe, se avisa y no se guarda.</li>
     <li>La foto se guarda junto al cartón para consulta posterior.</li>
   </ul>
-  <p class="nota"><b>Privacidad:</b> la foto se envía a la API de Anthropic para su lectura. El resto de la aplicación no envía datos a internet. Detalle en la política de privacidad (menú Ayuda → Política de privacidad; contacto: contacto@saedo.cl).</p>
+  <p class="nota"><b>Privacidad:</b> la foto se envía solo al proveedor de IA elegido para su lectura. El resto de la aplicación no envía datos a internet. Detalle en la política de privacidad (menú Ayuda → Política de privacidad; contacto: contacto@saedo.cl).</p>
 </section>
 
 <section id="ajustes">
   <h2>13. Ajustes</h2>
   <figure><img src="./manual/img/ajustes.jpg" alt="Ajustes"><figcaption>Ajustes de la importación con IA y carpeta compartida.</figcaption></figure>
   <ul>
-    <li><b>API key de Anthropic:</b> se guarda cifrada con el sistema de Windows y nunca se muestra. "Borrar API key" la elimina.</li>
-    <li><b>Modelo:</b> identificador del modelo de Claude con visión (por defecto <code>claude-opus-5-5</code>). Cámbielo solo si sabe qué modelo usar; verifique los identificadores vigentes en la documentación de Anthropic.</li>
+    <li><b>Proveedor de IA:</b> Anthropic (Claude), OpenAI (GPT), Google (Gemini) o servidor compatible con OpenAI. Cada proveedor guarda su propia clave, modelo y consentimiento; puede cambiar de proveedor cuando quiera.</li>
+    <li><b>API key:</b> se guarda cifrada con el sistema de Windows y nunca se muestra. "Borrar API key" elimina la del proveedor elegido. En un servidor compatible es opcional.</li>
+    <li><b>URL del servidor</b> (solo servidor compatible): por ejemplo <code>http://localhost:11434/v1</code> para Ollama.</li>
+    <li><b>Modelo:</b> pulse <b>Listar modelos</b> para ver los modelos que su clave permite y elija uno que acepte imágenes. Para Claude, por defecto <code>claude-opus-5-5</code>; para los demás proveedores debe elegirlo usted (consulte la documentación del proveedor).</li>
     <li><b>Doble lectura:</b> ver sección 12.</li>
     <li><b>Carpeta compartida:</b> carpeta que se vigila para las fotos del celular.</li>
   </ul>
