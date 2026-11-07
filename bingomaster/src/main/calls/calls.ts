@@ -55,12 +55,19 @@ export function addCall(db: Db, eventId: number, n: number): Result<{ call: Call
   });
 }
 
-/** Deshace el último número vigente. */
+/**
+ * Deshace el último número vigente. Solo números del juego actual: un número
+ * de un juego anterior (que pudo dar ganadores) no se deshace.
+ */
 export function undoLastCall(db: Db, eventId: number): Result<{ undone: CallView }> {
   return transaction(db, () => {
     const current = listCurrentCalls(db, eventId);
     const last = current[current.length - 1];
     if (!last) return { ok: false, code: 'vacio', error: 'No hay números para deshacer' };
+    const row = db.prepare('SELECT game_id FROM calls WHERE id = ?').get(last.id) as { game_id: number | null };
+    if (row.game_id !== getCurrentGameId(db, eventId)) {
+      return { ok: false, code: 'otro_juego', error: `${label(last.number)} es de un juego anterior: no se puede deshacer` };
+    }
     db.prepare('DELETE FROM calls WHERE id = ?').run(last.id);
     return { ok: true, undone: last };
   });

@@ -1,7 +1,7 @@
 {
   "name": "bingomaster",
   "productName": "BingoMaster",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Conducción de bingos presenciales: panel del operador y pantalla pública",
   "author": "BingoMaster",
   "private": true,
@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "dist:win": "electron-vite build && electron-builder --win nsis --x64",
-    "e2e": "electron-vite build && node tests/e2e/f1.e2e.cjs",
+    "e2e": "electron-vite build && node tests/e2e/full.e2e.cjs",
     "smoke": "electron . --smoke-test"
   },
   "devDependencies": {
@@ -29,5 +29,8 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.6",
     "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
   }
 }

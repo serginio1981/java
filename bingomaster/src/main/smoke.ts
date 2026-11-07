@@ -10,7 +10,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { addCall, listCurrentCalls, undoLastCall } from './calls/calls';
 import { openDatabase } from './db/database';
+import { generateOwnCards } from './cards/cards';
 import { ensureActiveEvent } from './events/events';
+import { ensureBuiltinPatterns } from './patterns/patterns';
+import { checkClaim } from './winners/winners';
 
 /** En Windows una app con ventana no muestra stdout: el resultado también va a un archivo. */
 function report(line: string): void {
@@ -23,7 +26,10 @@ export function runSmokeTest(): void {
     try {
       const path = join(mkdtempSync(join(tmpdir(), 'bingomaster-smoke-')), 'smoke.db');
       let db = openDatabase(path);
+      ensureBuiltinPatterns(db);
       const ev = ensureActiveEvent(db, '2026-01-01');
+      const gen = generateOwnCards(db, ev.id, 50);
+      if (gen.created !== 50) throw new Error('no generó cartones');
       for (const n of [5, 20, 40]) {
         const r = addCall(db, ev.id, n);
         if (!r.ok) throw new Error(r.error);
@@ -33,6 +39,8 @@ export function runSmokeTest(): void {
       db.close();
       db = openDatabase(path);
       const calls = listCurrentCalls(db, ev.id).map((c) => c.number).join(',');
+      const claim = checkClaim(db, ev.id, 1);
+      if (typeof claim.valid !== 'boolean') throw new Error('validación');
       db.close();
       if (calls !== '5,20') throw new Error('estado recuperado incorrecto: ' + calls);
       const ok = `SMOKE_OK electron=${process.versions.electron} node=${process.versions.node} platform=${process.platform}`;

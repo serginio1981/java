@@ -68,4 +68,12 @@ export const MIGRATIONS: string[] = [
     created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   );
   `,
+  // 2: notas de ganador (desempate), un cartón gana una vez por juego, folios propios numéricos.
+  `
+  ALTER TABLE winners ADD COLUMN note TEXT;
+  CREATE UNIQUE INDEX winners_game_card ON winners(game_id, card_id);
+  ALTER TABLE cards ADD COLUMN own_seq INTEGER;
+  CREATE INDEX cards_own_seq ON cards(event_id, own_seq);
+  CREATE UNIQUE INDEX patterns_builtin_name ON patterns(name) WHERE is_builtin = 1;
+  `,
 ];

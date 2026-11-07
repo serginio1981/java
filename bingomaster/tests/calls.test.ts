@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { addCall, listCurrentCalls, undoLastCall } from '../src/main/calls/calls';
 import { openDatabase, type Db } from '../src/main/db/database';
+import { MIGRATIONS } from '../src/main/db/migrations';
 import { createEvent, ensureActiveEvent, getActiveEvent } from '../src/main/events/events';
 import { buildPublicState } from '../src/main/state/state';
 
@@ -102,7 +103,7 @@ describe('recuperación de sesión', () => {
     const path = join(mkdtempSync(join(tmpdir(), 'bm-')), 'm.db');
     openDatabase(path).close();
     const db = openDatabase(path);
-    expect(db.prepare('SELECT version FROM schema_version').get()).toEqual({ version: 1 });
+    expect(db.prepare('SELECT version FROM schema_version').get()).toEqual({ version: MIGRATIONS.length });
     db.close();
   });
 });

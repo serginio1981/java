@@ -2,7 +2,7 @@
 html { font-size: min(calc(100vw / 120), calc(100vh / 67.5)); }
 :root { --cell-off-bg: #151b29; --cell-off-ink: #4b566b; --last-outline: #ffffff; color-scheme: dark; }
 body { background: #05070d; color: #f5f7fb; overflow: hidden; }
-.pub { display: grid; grid-template-rows: auto 19rem minmax(0, 1fr); height: 100%; padding: 1.5rem 2.5rem 2rem; gap: 1.5rem; }
+.pub { display: grid; grid-template-rows: auto 20rem minmax(0, 1fr); height: 100%; padding: 1.5rem 2.5rem 2rem; gap: 1.5rem; }
 .pub-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; font-size: 2.6rem; font-weight: 700; }
 .pub-event { color: #c9d2e3; }
 .pub-game { text-align: center; color: #fff; }
@@ -42,3 +42,28 @@ body { background: #05070d; color: #f5f7fb; overflow: hidden; }
 .pub-board .board-cell { font-size: 3.3rem; border-radius: .8rem; }
 .pub-board .board-cell.on { box-shadow: 0 0 1.2rem color-mix(in srgb, var(--c) 50%, transparent); }
 .pub-board .board-cell.last { outline-width: .35rem; outline-offset: .2rem; }
+
+/* Figura en juego */
+.pub-last { grid-template-columns: auto 1fr auto; }
+.pub-figure { display: flex; flex-direction: column; align-items: center; gap: .4rem; align-self: start; }
+.pub-figure-title { font-size: 1.8rem; color: #9aa6bb; font-weight: 700; }
+.pub-figure .any-of { font-size: 1.4rem; color: #c9d2e3; text-align: center; }
+.pub-figure .count-badge { width: 16rem; height: 14rem; border-radius: 1.2rem; background: #151b29; display: grid; place-items: center; align-content: center; text-align: center; padding: 1rem; }
+.pub-figure .count-badge strong { font-size: 8rem; line-height: 1; color: #fff; }
+.pub-figure .count-badge span { font-size: 1.8rem; color: #c9d2e3; }
+.pub .mask-grid.mask-xl { --cell: 2.1rem; }
+.pub .mask-cell { background: #151b29; }
+.pub .mask-cell.on { background: #ffcc33; }
+.pub .mask-cell.center { color: #05070d; }
+
+/* Overlay ¡BINGO! */
+.pub-overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(2,4,10,.78); animation: aparece 400ms ease-out both; }
+.pub-overlay-box { text-align: center; padding: 3rem 6rem; border-radius: 3rem; background: radial-gradient(circle at 50% 20%, #ffd54a, #ff9800 70%); color: #1b1000; box-shadow: 0 0 8rem rgba(255,190,40,.6); animation: late 1.2s ease-in-out infinite alternate; }
+.pub-overlay-title { font-size: 14rem; font-weight: 900; line-height: 1; letter-spacing: .3rem; }
+.pub-overlay-game { font-size: 3rem; font-weight: 700; margin-top: 1rem; }
+.pub-overlay-id { display: flex; gap: 4rem; justify-content: center; font-size: 4rem; margin-top: 1.5rem; }
+.pub-overlay-id b { font-size: 6rem; }
+@keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes late { from { transform: scale(1); } to { transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .pub-overlay-box { animation: none; } }
+.pub .pattern-preview { gap: .3rem; }

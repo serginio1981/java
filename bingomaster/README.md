@@ -1,18 +1,62 @@
 # BingoMaster
 
 Aplicación de escritorio para Windows para conducir bingos presenciales: panel del
-operador en el notebook y pantalla pública en el proyector. 100% offline (salvo la
-importación de cartones con IA, fase 5).
+operador en el notebook y pantalla pública en el proyector. 100% offline, salvo la
+importación de cartones con IA.
 
 ## Estado
 
-| Fase | Contenido | Estado |
-|---|---|---|
-| F1 | Esqueleto, estado en main, ventanas operador y pública sincronizadas, ingreso de números, tablero, deshacer, recuperación de sesión, build Windows en CI | **Hecha** |
-| F2 | Eventos, cartones propios, PDF | Pendiente |
-| F3 | Figuras, secuencia de juegos, validación por serie+folio, ingreso manual de externos | Pendiente |
-| F4 | Pulido de pantalla pública, instalador NSIS final | Pendiente |
-| F5 | Importación de cartones con IA de visión | Pendiente |
+Las 5 fases están implementadas y probadas en Linux (pruebas unitarias + prueba de punta a
+punta en Electron) y empaquetadas para Windows en GitHub Actions.
+
+| Fase | Contenido |
+|---|---|
+| F1 | Estado único en main, ventanas operador y pública sincronizadas, ingreso de números, tablero, deshacer |
+| F2 | Eventos, generación de cartones propios, PDF (Carta/A4, 1/2/4 por hoja, rango de folios) |
+| F3 | Editor de figuras, secuencia de juegos, ¡BINGO! por folio, ganadores, ingreso manual de externos |
+| F4 | Pantalla pública (figura en juego, "Juego X de Y", overlay ¡BINGO!), recuperación de sesión, instalador NSIS |
+| F5 | Importación de cartones externos con IA de visión, doble lectura, revisión obligatoria |
+
+**No probado:** instalación en Windows real, proyector físico, webcam real y la API de
+Claude real (se probó con un servidor que la simula).
+
+## Uso rápido
+
+1. **Evento y juegos:** "Nuevo evento" (nombre, fecha, código de serie, si los números se
+   acumulan). Se carga una secuencia inicial (Primeros 3 → Línea → X → Cartón lleno) que
+   se puede editar: agregar, quitar, reordenar, cambiar figura, elegir el juego en curso.
+2. **Cartones:** generar N cartones (folios SERIE-0001…; la numeración continúa) y exportar
+   PDF. Para reimprimir, indicar el rango de folios.
+3. **Juego:** escribir el número + Enter (teclado numérico). `−` o Ctrl+Z deshace (con
+   confirmación). **F2** o `*` abre ¡BINGO!: folio → cartón con lo cantado → VÁLIDO / NO
+   VÁLIDO → registrar ganador → mostrar en la pública → siguiente juego. El panel derecho
+   muestra (solo al operador) cuántos cartones completan la figura y cuántos están a 1.
+4. **Cartones externos:** pestaña Cartones → "Ingreso manual" (serie, folio y 24 números,
+   el cursor avanza solo, Ctrl+Enter guarda) o pestaña "Importar con IA" (webcam, archivo,
+   carpeta compartida; revisión obligatoria antes de guardar).
+5. **Ajustes:** API key (cifrada con safeStorage), modelo, doble lectura, carpeta compartida.
+
+### Reglas implementadas
+
+- Un número se canta una vez (dentro de los vigentes); rango 1–75; letra por rango.
+- marcados = (números del cartón ∩ cantados vigentes) ∪ {FREE}. Se valida con lo cantado
+  en la app, nunca con lo marcado a lápiz. Igual para propios y externos.
+- **Un bingo es VÁLIDO solo si la figura se completó con el último número cantado.** Si se
+  completó antes, se informa en qué número y se marca NO VÁLIDO.
+- "Línea (cualquiera)" = 5 filas + 5 columnas + 2 diagonales.
+- Varios ganadores por juego: se registran todos; "Siguiente juego" es un paso aparte.
+- Deshacer solo afecta números del juego en curso.
+- Identidad del cartón = serie + folio; no se puede repetir en el evento.
+
+### Supuestos que conviene confirmar
+
+- **Desempate:** hay una ayuda (se escribe una bola de desempate, no se registra como
+  cantada, y se muestra qué cartón empatado la tiene). La regla exacta está pendiente de
+  confirmar con el cliente.
+- **Modo acumulado y bingo tardío:** con números acumulados, un cartón que ya tenía la
+  figura del juego nuevo al empezarlo queda NO VÁLIDO (no se completó con el último número).
+- **Cartones a 1 número / completos** se calcula sobre todos los cartones registrados del
+  evento (propios y externos), no solo los vendidos.
 
 ## Desarrollo
 
@@ -23,63 +67,49 @@ cd bingomaster
 npm install
 npm run dev        # app con recarga en caliente
 npm test           # pruebas unitarias (Vitest)
-npm run typecheck  # verificación de tipos
-npm run build      # compila a out/
-npm start          # ejecuta lo compilado
-npm run dist:win   # instalador NSIS (en Windows; en CI se hace solo)
+npm run typecheck  # tipos
+npm run build && npm start
 ```
 
-Prueba de punta a punta (Electron real con Playwright; necesita pantalla, en Linux
-usar `xvfb-run -a`): `npm run build && node tests/e2e/f1.e2e.cjs [carpeta-capturas]`.
-Requiere `playwright` instalado (no es dependencia del proyecto).
+Prueba de punta a punta (Electron real + Playwright, API de Claude simulada; en Linux usar
+`xvfb-run -a`): `npm run build && node tests/e2e/full.e2e.cjs [carpeta-capturas]`.
+Requiere `playwright` instalado aparte.
 
 ### Instalador de Windows
 
-El workflow `.github/workflows/bingomaster-windows.yml` (raíz del repo) corre en
-`windows-latest` con cada push que toque `bingomaster/`: tipos, pruebas, empaquetado
-NSIS, **prueba de humo del `.exe` empaquetado** (`BingoMaster.exe --smoke-test`) y
-publica el instalador como artefacto descargable desde la pestaña Actions.
-
-## Uso (F1)
-
-- **Cantar:** escribir el número en el teclado numérico y Enter. También acepta `B12`.
-  Fuera de rango, repetido o letra equivocada se avisa en rojo y no se registra.
-- **Tablero:** clic en un número lo pone en el campo; Enter lo canta (evita cantar
-  por un clic accidental).
-- **Deshacer:** tecla `−` del teclado numérico (con el campo vacío) o Ctrl+Z → diálogo
-  de confirmación. El foco queda en "Cancelar": Enter cancela.
-- **Pantalla pública:** elegir pantalla y "Abrir". Si hay proyector se abre a pantalla
-  completa en él; si no, en ventana sobre la principal. "Mover" la cambia de pantalla.
-- En F1 se crea solo un "Evento de prueba"; la gestión de eventos llega en F2.
+`.github/workflows/bingomaster-windows.yml` (raíz del repo) corre en `windows-latest` en
+cada push que toque `bingomaster/`: tipos, pruebas, instalador NSIS, prueba de humo del
+`.exe` empaquetado y publica el instalador como artefacto en la pestaña Actions. No está
+firmado: Windows SmartScreen pedirá "Más información → Ejecutar de todas formas".
 
 ## Decisiones técnicas
 
-- **Electron 45 + React 19 + TypeScript 7 + Vite 8**, compilado con electron-vite.
-- **SQLite con `node:sqlite` (integrado en Node) en vez de better-sqlite3.**
-  Verificado el 7-nov-2026: better-sqlite3 13.0.3 no publica binario precompilado para
-  Electron 45 (ABI 150; la descarga da 404), por lo que habría que compilarlo con
-  herramientas nativas de Visual Studio en cada build de Windows. `node:sqlite` viene
-  dentro de Electron 45 (Node 24.22.2), no requiere compilar nada, es SQLite real en
-  archivo y tiene API síncrona similar. Riesgo: en Node la API figura como
-  experimental; queda aislada en `src/main/db/` para poder cambiarla.
-- **Autoguardado:** cada comando corre en una transacción (`BEGIN IMMEDIATE`/`COMMIT`)
-  con WAL y `synchronous=FULL`. No hay "guardar": al reabrir, el evento activo y lo
-  cantado se recuperan.
-- **Estado único en el proceso main.** Las ventanas mandan comandos tipados
-  (`src/shared/ipc/contract.ts`) y reciben el estado completo tras cada cambio. La
-  ventana pública recibe solo una proyección pública (sin datos del operador).
-- **Offline:** el proceso main cancela toda petición de red de las ventanas y no
-  concede permisos (cámara, etc.) en F1. Una sola instancia de la app.
-- **Base de datos:** `%APPDATA%\BingoMaster\bingomaster.db` (se muestra en el pie del
-  panel). El desinstalador no la borra.
-- La columna de orden de `games` se llama `position` (`order` es palabra reservada).
+- **Electron 45 + React 19 + TypeScript 7 + Vite 8** (electron-vite).
+- **SQLite con `node:sqlite`** (incluido en Electron 45 / Node 24) en vez de better-sqlite3,
+  que no publica binario precompilado para Electron 45 (verificado: 404) y habría que
+  compilarlo en Windows. En Node la API figura como experimental; queda aislada en
+  `src/main/db/`.
+- **Autoguardado:** cada comando es una transacción con WAL y `synchronous=FULL`.
+- **Estado único en main**; las ventanas mandan comandos tipados (`src/shared/ipc/contract.ts`)
+  y reciben el estado tras cada cambio. La pública recibe solo campos públicos y no puede
+  enviar comandos.
+- **Figuras como máscaras de 25 bits**: la evaluación de miles de cartones por número es
+  barata. Medido: 100.000 cartones → ~27 ms por número cantado, ~36 ms buscar folio.
+- **PDF** con `printToPDF` desde una ventana oculta (offline).
+- **Importación con IA**: SDK oficial `@anthropic-ai/sdk` 1.6 desde el proceso main,
+  salida estructurada con JSON Schema, `fallbacks: "default"` en modelos que lo aceptan.
+  Modelo por defecto `claude-opus-5-5` (configurable). Las ventanas no tienen red.
+- **Permisos:** solo cámara (video) y solo para la ventana del operador.
+- **Datos:** `%APPDATA%\BingoMaster\bingomaster.db` y fotos en `imagenes\`. El desinstalador
+  no los borra.
 
 ## Estructura
 
 ```
-src/shared/      reglas del bingo y contrato IPC (puro, probado con Vitest)
-src/main/        db, events, calls, state, windows, smoke (prueba de humo)
+src/shared/      bingo (grilla, números), patterns, validation, import-ai, ipc  — puro, probado
+src/main/        db, events, games, calls, cards, patterns, winners, printing,
+                 import-ai, settings, state, windows, smoke
 src/preload/     puente seguro
-src/renderer/    operator/ (panel), public/ (proyector), ui/ (tablero, tema)
-tests/           Vitest + e2e/ (Playwright + Electron)
+src/renderer/    operator/ (pestañas), public/ (proyector), ui/ (componentes)
+tests/           Vitest + e2e/full.e2e.cjs
 ```
