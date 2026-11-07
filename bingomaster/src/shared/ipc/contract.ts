@@ -217,6 +217,9 @@ export interface Commands {
   'winners:note': { args: [number, string]; result: Result };
   'overlay:show': { args: [Overlay]; result: Result };
   'overlay:hide': { args: []; result: Result };
+  // Respaldo
+  'data:backup': { args: []; result: Result<{ path: string }> };
+  'data:restore': { args: []; result: Result<{ events: number; cards: number }> };
   // Ayuda
   'help:openManual': { args: [string | null]; result: Result };
   // Ventana pública

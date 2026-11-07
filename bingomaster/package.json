@@ -2,8 +2,8 @@
   "name": "bingomaster",
   "productName": "BingoMaster",
   "version": "0.2.0",
-  "description": "Conducción de bingos presenciales: panel del operador y pantalla pública",
-  "author": "BingoMaster",
+  "description": "Conducción de bingos presenciales: panel del operador, pantalla pública, cartones con folio y validación",
+  "author": "Sergio Aedo Mena",
   "private": true,
   "main": "out/main/index.js",
   "scripts": {
@@ -14,7 +14,8 @@
     "test": "vitest run",
     "dist:win": "electron-vite build && electron-builder --win nsis --x64",
     "e2e": "electron-vite build && node tests/e2e/full.e2e.cjs",
-    "smoke": "electron . --smoke-test"
+    "smoke": "electron . --smoke-test",
+    "dist:store": "electron-vite build && electron-builder --win appx --x64"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

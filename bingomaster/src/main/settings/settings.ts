@@ -26,7 +26,8 @@ export class Settings {
     return {
       model: this.model(),
       doubleRead: getMeta(this.db, 'ai.doubleRead') === '1',
-      apiKeyConfigured: !!getMeta(this.db, 'ai.key'),
+      // Una key copiada desde otro equipo (respaldo restaurado) no se puede descifrar: cuenta como no configurada.
+      apiKeyConfigured: !!this.apiKey(),
       encryptionAvailable: this.safe.isEncryptionAvailable(),
       encryptionBackend: backend,
       importFolder: this.importFolder(),

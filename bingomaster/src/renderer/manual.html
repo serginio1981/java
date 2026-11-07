@@ -54,6 +54,7 @@
     <li>El instalador no está firmado digitalmente, así que Windows SmartScreen puede advertir. Pulse <b>Más información → Ejecutar de todas formas</b>.</li>
     <li>Elija la carpeta de instalación. Se crean accesos directos en el escritorio y el menú Inicio.</li>
   </ol>
+  <p>También puede instalarse desde <b>Microsoft Store</b> (busque "Bingo Master"); en ese caso no hay advertencia de SmartScreen y las actualizaciones llegan por la Store.</p>
   <p class="nota">Requisitos: Windows 10 u 11. Para la pantalla pública, un proyector o segundo monitor conectado al notebook (recomendado 1920×1080).</p>
   <p class="nota">Al desinstalar, los datos (eventos, cartones, ganadores) <b>no se borran</b>. Ver sección 14.</p>
 </section>
@@ -248,8 +249,10 @@
     <li>Todo se guarda automáticamente tras cada acción; no existe un botón "Guardar".</li>
     <li>Si la aplicación se cierra o el equipo se apaga, al reabrir aparece "Sesión recuperada" con el evento y los números donde quedaron.</li>
     <li>Los datos están en <code>%APPDATA%\BingoMaster\bingomaster.db</code> y las fotos en la carpeta <code>imagenes</code> junto a ella. La ruta exacta se muestra al pie del panel del operador y en Ajustes.</li>
-    <li><b>Respaldo:</b> con la aplicación <b>cerrada</b>, copie la carpeta <code>%APPDATA%\BingoMaster</code> completa a un pendrive o a la nube.</li>
-    <li>Desinstalar la aplicación no borra estos datos.</li>
+    <li><b>Respaldar:</b> Ajustes → <b>Respaldar base de datos…</b> genera un archivo <code>.db</code> con eventos, cartones, juegos, ganadores y figuras (no incluye las fotos de cartones importados). Guárdelo en un pendrive o en la nube.</li>
+    <li><b>Restaurar:</b> Ajustes → <b>Restaurar respaldo…</b> reemplaza los datos actuales por los del respaldo. Antes se guarda automáticamente una copia de los datos actuales junto a la base de datos.</li>
+    <li>Con el <b>instalador .exe</b>, desinstalar no borra los datos. Si la aplicación se instaló desde <b>Microsoft Store</b>, Windows <b>sí borra sus datos al desinstalarla</b>: haga un respaldo antes.</li>
+    <li>La API key no viaja en el respaldo a otro equipo (está cifrada para el equipo original): vuelva a ingresarla en Ajustes.</li>
   </ul>
 </section>
 

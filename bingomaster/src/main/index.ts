@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, screen, session } from 'electron';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, type FSWatcher } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, watch, type FSWatcher } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import type { CommandName, Commands, OperatorState, Overlay, Result } from '../shared/ipc/contract';
 import { FOLDER_CHANNEL, STATE_CHANNEL } from '../shared/ipc/contract';
@@ -7,7 +7,7 @@ import { addCall, undoLastCall } from './calls/calls';
 import {
   addExternalCard, cardImagePath, findByFolio, findExact, invalidateIndex, listCards, ownCardsInRange, generateOwnCards,
 } from './cards/cards';
-import { getMeta, openDatabase, setMeta, type Db } from './db/database';
+import { backupTo, getMeta, inspectBackup, openDatabase, setMeta, type Db } from './db/database';
 import { appError } from './errors';
 import { activateEvent, createEvent, DEFAULT_SEQUENCE, ensureActiveEvent, getActiveEvent, updateEvent } from './events/events';
 import { addGame, finishGame, loadDefaultSequence, moveGame, removeGame, setCurrentGame, updateGame } from './games/games';
@@ -174,6 +174,48 @@ function main(): void {
     handle('overlay:show', (o) => { overlay = { series: String(o.series), folio: String(o.folio), gameName: String(o.gameName) }; return ok; });
     handle('overlay:hide', () => { overlay = null; return ok; });
 
+    handle('data:backup', async () => {
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+      const r = await dialog.showSaveDialog(operator as BrowserWindow, {
+        title: 'Respaldar base de datos',
+        defaultPath: join(app.getPath('documents'), `BingoMaster-respaldo-${stamp}.db`),
+        filters: [{ name: 'Respaldo de BingoMaster', extensions: ['db'] }],
+      });
+      if (r.canceled || !r.filePath) throw appError('cancelado', 'Sin cambios');
+      if (r.filePath === dbPath) throw appError('respaldo', 'Elija otro archivo distinto a la base de datos en uso');
+      if (existsSync(r.filePath)) rmSync(r.filePath);
+      backupTo(db, r.filePath);
+      return { ok: true, path: r.filePath };
+    }, { mutates: false });
+    handle('data:restore', async () => {
+      const r = await dialog.showOpenDialog(operator as BrowserWindow, {
+        title: 'Restaurar respaldo', properties: ['openFile'], filters: [{ name: 'Respaldo de BingoMaster', extensions: ['db'] }],
+      });
+      const src = r.filePaths[0];
+      if (r.canceled || !src) throw appError('cancelado', 'Sin cambios');
+      const info = inspectBackup(src);
+      if (!info.ok) throw appError('respaldo', info.error);
+      const c = await dialog.showMessageBox(operator as BrowserWindow, {
+        type: 'warning', buttons: ['Restaurar', 'Cancelar'], defaultId: 1, cancelId: 1, title: 'Restaurar respaldo',
+        message: `¿Reemplazar los datos actuales por el respaldo?`,
+        detail: `El respaldo tiene ${info.events} evento(s) y ${info.cards} cartón(es). Los datos actuales se perderán; antes se guarda una copia automática junto a la base de datos.`,
+      });
+      if (c.response !== 0) throw appError('cancelado', 'Sin cambios');
+      // Copia de seguridad automática de lo actual antes de reemplazar.
+      const safety = join(dataDir, `antes-de-restaurar-${Date.now()}.db`);
+      backupTo(db, safety);
+      db.close();
+      for (const ext of ['-wal', '-shm']) rmSync(dbPath + ext, { force: true });
+      copyFileSync(src, dbPath);
+      db = openDatabase(dbPath);
+      ensureBuiltinPatterns(db);
+      ensureActiveEvent(db, new Date().toISOString().slice(0, 10));
+      settings = new Settings(db, safeStorage);
+      invalidateIndex();
+      overlay = null;
+      notice = `Respaldo restaurado (${info.events} evento(s), ${info.cards} cartón(es)). Copia de los datos anteriores: ${safety}`;
+      return { ok: true, events: info.events, cards: info.cards };
+    });
     handle('help:openManual', (section) => { openManual(section && /^[a-z-]{1,30}$/.test(section) ? section : undefined); return ok; }, { mutates: false });
     handle('public:open', (displayId) => { publicWin.open(displayId); return ok; });
     handle('public:close', () => { publicWin.close(); return ok; });

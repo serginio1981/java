@@ -269,6 +269,19 @@ async function typeCard(op, series, folio, grid) {
   await op.click('button:has-text("Guardar cifrada")');
   await op.waitForSelector('text=API key configurada');
   await shot(op, '8c-ajustes', 'ajustes');
+  // Respaldo y restauración (diálogos simulados)
+  const bkPath = path.join(SHOTS, 'respaldo.db');
+  await app.evaluate(({ dialog }, p) => {
+    dialog.showSaveDialog = async () => ({ canceled: false, filePath: p });
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [p] });
+    dialog.showMessageBox = async () => ({ response: 0, checkboxChecked: false });
+  }, bkPath);
+  await op.click('button:has-text("Respaldar base de datos")');
+  await waitToast(op, /Respaldo guardado/);
+  assert.ok(fs.statSync(bkPath).size > 10000);
+  await op.click('button:has-text("Restaurar respaldo")');
+  await waitToast(op, /Respaldo restaurado: 2 evento\(s\), 41 cartón/);
+  await op.waitForSelector('.notice:has-text("Respaldo restaurado")');
   await op.click('label:has-text("Doble lectura") input');
   await op.waitForFunction(() => document.querySelector('label.chk input[type=checkbox]:checked') !== null);
   await tab(op, 'Importar con IA');

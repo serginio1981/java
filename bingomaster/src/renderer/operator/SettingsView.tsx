@@ -36,8 +36,13 @@ export function SettingsView({ state }: { state: OperatorState }) {
           <button onClick={() => void call('import:chooseFolder')}>Elegir carpeta…</button>
           <button disabled={!s.importFolder} onClick={() => void call('import:clearFolder')}>Quitar</button>
         </div>
-        <h2>Datos</h2>
+        <h2>Datos y respaldo</h2>
         <p className="muted small">Base de datos: {state.dataPath}. Se guarda automáticamente tras cada acción.</p>
+        <p className="muted small">Haga un respaldo antes de desinstalar o cambiar de equipo: si la app se instaló desde Microsoft Store, Windows borra sus datos al desinstalarla. El respaldo incluye eventos, cartones, juegos, ganadores y figuras (no las fotos de cartones importados).</p>
+        <div className="row left">
+          <button className="primary" onClick={async () => { const r = await call('data:backup'); if (r) toast('ok', 'Respaldo guardado: ' + r.path); }}>Respaldar base de datos…</button>
+          <button onClick={async () => { const r = await call('data:restore'); if (r) toast('ok', `Respaldo restaurado: ${r.events} evento(s), ${r.cards} cartón(es)`); }}>Restaurar respaldo…</button>
+        </div>
       </section>
     </div>
   );

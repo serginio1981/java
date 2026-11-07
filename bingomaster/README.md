@@ -89,6 +89,17 @@ Prueba de punta a punta (Electron real + Playwright, API de Claude simulada; en 
 `xvfb-run -a`): `npm run build && node tests/e2e/full.e2e.cjs [carpeta-capturas]`.
 Requiere `playwright` instalado aparte.
 
+### Microsoft Store
+
+`electron-builder.yml` → sección `appx` con la identidad de Partner Center (Bingo Master,
+`SergioAedoMena.BingoMaster`). La CI genera `BingoMaster-Store-<versión>.appx` (sin firmar: la
+Store lo firma) como artefacto **BingoMaster-Store**; se sube en Partner Center → Envíos →
+Paquetes. Localmente en Windows: `npm run dist:store`. Logos en `build/appx/` e ícono en
+`build/icon.png` (provisionales, generados desde `build/icon.svg`).
+
+Ajustes → **Respaldar / Restaurar** base de datos: necesario porque Windows borra los datos de
+una app de la Store al desinstalarla.
+
 ### Instalador de Windows
 
 `.github/workflows/bingomaster-windows.yml` (raíz del repo) corre en `windows-latest` en

@@ -1,6 +1,6 @@
 appId: cl.bingomaster.app
 productName: BingoMaster
-copyright: BingoMaster
+copyright: © Sergio Aedo Mena
 directories:
   output: dist
   buildResources: build
@@ -9,11 +9,12 @@ files:
   - package.json
 asar: true
 win:
+  icon: build/icon.png
   target:
     - target: nsis
       arch: [x64]
-  artifactName: BingoMaster-Setup-${version}.${ext}
 nsis:
+  artifactName: BingoMaster-Setup-${version}.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
@@ -22,4 +23,18 @@ nsis:
   shortcutName: BingoMaster
   # Los datos (bingomaster.db) viven en %APPDATA%\BingoMaster y NO se borran al desinstalar.
   deleteAppDataOnUninstall: false
+# Paquete para Microsoft Store (se genera con: electron-builder --win appx).
+# Valores de Partner Center → Bingo Master → Product identity.
+# Sin certificado: la Store firma el paquete al aprobarlo.
+appx:
+  artifactName: BingoMaster-Store-${version}.${ext}
+  identityName: SergioAedoMena.BingoMaster
+  publisher: CN=02EABAB7-6695-4B42-A511-7B74203DB00A
+  publisherDisplayName: Sergio Aedo Mena
+  displayName: Bingo Master
+  applicationId: BingoMaster
+  backgroundColor: '#1d2a44'
+  languages: [es-ES]
+  # Cámara para la webcam (importación de cartones) e internet para la lectura con IA.
+  capabilities: [runFullTrust, internetClient, webcam]
 publish: null

@@ -61,3 +61,32 @@ export function setMeta(db: Db, key: string, value: string | null): void {
   if (value === null) db.prepare('DELETE FROM app_meta WHERE key = ?').run(key);
   else db.prepare('INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
 }
+
+/**
+ * Copia consistente de la base de datos (incluye lo que está en el WAL).
+ * Usa VACUUM INTO, que genera un archivo SQLite compacto e independiente.
+ */
+export function backupTo(db: Db, path: string): void {
+  db.exec(`VACUUM INTO '${path.replace(/'/g, "''")}'`);
+}
+
+/** ¿El archivo es una base de datos de BingoMaster? Devuelve un resumen o un error legible. */
+export function inspectBackup(path: string): { ok: true; events: number; cards: number; version: number } | { ok: false; error: string } {
+  let db: DatabaseSync | null = null;
+  try {
+    db = new DatabaseSync(path, { readOnly: true });
+    const tables = new Set((db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map((t) => t.name));
+    for (const t of ['schema_version', 'events', 'cards', 'calls', 'games', 'winners', 'patterns']) {
+      if (!tables.has(t)) return { ok: false, error: 'El archivo no es un respaldo de BingoMaster' };
+    }
+    const version = (db.prepare('SELECT version FROM schema_version').get() as { version: number }).version;
+    if (version > MIGRATIONS.length) return { ok: false, error: 'El respaldo es de una versión más nueva de BingoMaster: actualice la aplicación primero' };
+    const events = (db.prepare('SELECT COUNT(*) AS n FROM events').get() as { n: number }).n;
+    const cards = (db.prepare('SELECT COUNT(*) AS n FROM cards').get() as { n: number }).n;
+    return { ok: true, events, cards, version };
+  } catch {
+    return { ok: false, error: 'No se pudo leer el archivo como base de datos de BingoMaster' };
+  } finally {
+    try { db?.close(); } catch { /* nada */ }
+  }
+}
