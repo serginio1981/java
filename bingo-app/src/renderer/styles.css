@@ -1,0 +1,102 @@
+:root {
+  --fondo: #f6f7f9;
+  --panel: #ffffff;
+  --texto: #1d2330;
+  --suave: #5d6677;
+  --borde: #d5d9e0;
+  --acento: #1f6feb;
+  --ok: #1a7f37;
+  --alerta: #b35900;
+  --error: #c62828;
+  --dudosa: #fff3b0;
+  --error-fondo: #ffd9d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #14171c; --panel: #1d2128; --texto: #e6e9ee; --suave: #9aa3b2; --borde: #353b45;
+    --acento: #4c8dff; --ok: #3fb950; --alerta: #f0a33a; --error: #ff6b61;
+    --dudosa: #5a4d00; --error-fondo: #5c1f1b;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.4 system-ui, sans-serif; background: var(--fondo); color: var(--texto); }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--borde); }
+header h1 { font-size: 18px; margin: 0; }
+nav { display: flex; gap: 4px; margin-left: auto; }
+nav button { background: transparent; color: var(--texto); border: 1px solid transparent; }
+nav button.activo { border-color: var(--acento); color: var(--acento); }
+button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--acento); background: var(--acento); color: #fff; cursor: pointer; }
+button.sec { background: transparent; color: var(--acento); }
+button.peligro { background: transparent; color: var(--error); border-color: var(--error); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+input, select { font: inherit; padding: 5px 8px; border: 1px solid var(--borde); border-radius: 6px; background: var(--panel); color: var(--texto); }
+label { display: inline-flex; gap: 6px; align-items: center; }
+label.chk { display: flex; margin: 8px 0; }
+.tab { padding: 16px; }
+.oculto { display: none !important; }
+.muted { color: var(--suave); }
+.fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+.aviso { margin: 8px 16px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--borde); background: var(--panel); }
+.aviso.ok { border-color: var(--ok); color: var(--ok); }
+.aviso.alerta { border-color: var(--alerta); color: var(--alerta); }
+.estado { margin-top: 16px; padding: 12px; border-radius: 6px; background: var(--panel); border: 1px solid var(--borde); }
+.estado.cargando::before { content: '⏳ '; }
+.estado.alerta { border-color: var(--alerta); color: var(--alerta); }
+
+.captura { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 16px; }
+.col { background: var(--panel); border: 1px solid var(--borde); border-radius: 8px; padding: 12px; }
+.guia ul { padding-left: 18px; margin: 0 0 12px; }
+.camara { position: relative; background: #000; border-radius: 6px; overflow: hidden; aspect-ratio: 16/9; }
+.camara video { width: 100%; height: 100%; object-fit: contain; }
+.camara .marco { position: absolute; inset: 6%; border: 2px dashed rgba(255,255,255,.6); border-radius: 6px; pointer-events: none; }
+.drop { border: 2px dashed var(--borde); border-radius: 8px; padding: 24px; text-align: center; }
+.drop.sobre { border-color: var(--acento); background: rgba(31,111,235,.08); }
+.drop small { display: block; color: var(--suave); margin-top: 6px; }
+.link { color: var(--acento); text-decoration: underline; cursor: pointer; display: inline; }
+.lista-archivos { list-style: none; padding: 0; margin: 0; max-height: 240px; overflow: auto; }
+.lista-archivos li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--borde); word-break: break-all; }
+
+.revision { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: calc(100vh - 110px); }
+.foto, .lecturas { background: var(--panel); border: 1px solid var(--borde); border-radius: 8px; padding: 12px; overflow: auto; }
+.foto { display: flex; flex-direction: column; }
+.foto-scroll { overflow: auto; flex: 1; }
+.foto-scroll img { display: block; max-width: none; }
+.lectura { border: 1px solid var(--borde); border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+.lectura.es-dudoso { border-color: var(--alerta); }
+.lectura.guardado { border-color: var(--ok); opacity: .7; }
+.lectura.descartado { opacity: .4; }
+.lectura h3 { margin: 0 0 6px; font-size: 16px; }
+.motivos { margin: 0 0 8px; padding-left: 18px; color: var(--alerta); font-size: 13px; }
+.dudosa-muestra { background: var(--dudosa); padding: 0 4px; }
+.error-muestra { background: var(--error-fondo); padding: 0 4px; }
+
+.ids { display: flex; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.inp-id { width: 140px; }
+.grilla { border-collapse: collapse; }
+.grilla th { width: 56px; font-size: 18px; padding: 4px; }
+.grilla td { border: 1px solid var(--borde); padding: 0; width: 56px; height: 48px; text-align: center; }
+.grilla td.free { font-size: 12px; font-weight: bold; color: var(--suave); }
+.grilla input { width: 100%; height: 100%; border: 0; border-radius: 0; text-align: center; font-size: 20px; font-variant-numeric: tabular-nums; background: transparent; }
+.grilla input:focus { outline: 3px solid var(--acento); outline-offset: -3px; }
+input.dudosa { background: var(--dudosa) !important; }
+input.error { background: var(--error-fondo) !important; color: var(--error); }
+.errores { color: var(--error); font-size: 13px; min-height: 18px; margin-top: 4px; }
+.grilla.mini td { width: 36px; height: 28px; font-size: 14px; }
+.grilla.mini th { width: 36px; font-size: 14px; }
+
+.manual { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+.teclado { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; }
+.tecla { height: 56px; font-size: 22px; background: var(--panel); color: var(--texto); border-color: var(--borde); }
+
+.tabla { width: 100%; border-collapse: collapse; margin-top: 12px; background: var(--panel); }
+.tabla th, .tabla td { border-bottom: 1px solid var(--borde); padding: 6px 8px; text-align: left; }
+.resultado { display: inline-block; margin: 8px 16px 8px 0; padding: 8px; border: 1px solid var(--ok); border-radius: 8px; background: var(--panel); }
+.ajustes fieldset { border: 1px solid var(--borde); border-radius: 8px; margin-bottom: 16px; background: var(--panel); }
+.ajustes fieldset > label { display: flex; margin: 8px 0; }
+#inpApiKey { width: 360px; }
+#inpModelo { width: 260px; }
+dialog { border: 1px solid var(--borde); border-radius: 8px; background: var(--panel); color: var(--texto); }
+
+@media (max-width: 1100px) {
+  .captura, .revision { grid-template-columns: 1fr; height: auto; }
+}
