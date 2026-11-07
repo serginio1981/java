@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bingomaster.net/sitemap.xml

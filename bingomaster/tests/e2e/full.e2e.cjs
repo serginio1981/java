@@ -19,7 +19,7 @@ const styled = new WeakSet();
 async function shot(page, name, manualName) {
   await page.screenshot({ path: path.join(SHOTS, name + '.png') });
   if (!MANUAL || !manualName) return;
-  if (!styled.has(page)) { await page.addStyleTag({ content: '.toasts, .op-footer { visibility: hidden !important; }' }); styled.add(page); }
+  if (!styled.has(page)) { await page.addStyleTag({ content: '.toasts, .op-footer { visibility: hidden !important; } .notice { display: none !important; }' }); styled.add(page); }
   await page.waitForTimeout(250);
   await page.screenshot({ path: path.join(MANUAL, manualName + '.jpg'), type: 'jpeg', quality: 80 });
 }
@@ -281,7 +281,7 @@ async function typeCard(op, series, folio, grid) {
   assert.ok(fs.statSync(bkPath).size > 10000);
   await op.click('button:has-text("Restaurar respaldo")');
   await waitToast(op, /Respaldo restaurado: 2 evento\(s\), 41 cartón/);
-  await op.waitForSelector('.notice:has-text("Respaldo restaurado")');
+  await op.waitForSelector('.notice:has-text("Respaldo restaurado")', { state: 'attached' });
   await op.click('label:has-text("Doble lectura") input');
   await op.waitForFunction(() => document.querySelector('label.chk input[type=checkbox]:checked') !== null);
   await tab(op, 'Importar con IA');

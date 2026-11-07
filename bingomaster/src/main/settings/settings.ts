@@ -9,7 +9,7 @@ import { appError } from '../errors';
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 /** Si cambia lo que se envía al proveedor de IA, subir la versión para volver a pedir consentimiento. */
 export const CONSENT_VERSION = '1';
-export const PRIVACY_URL = 'https://github.com/serginio1981/java/blob/master/bingomaster/PRIVACIDAD.md';
+export const PRIVACY_URL = 'https://bingomaster.net/privacidad.html';
 
 export interface SafeStorageLike {
   isEncryptionAvailable(): boolean;

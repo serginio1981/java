@@ -91,7 +91,7 @@ Requiere `playwright` instalado aparte.
 
 ### Microsoft Store
 
-Política de privacidad para la ficha de la Store: [`PRIVACIDAD.md`](PRIVACIDAD.md).
+Política de privacidad: fuente [`PRIVACIDAD.md`](PRIVACIDAD.md), publicada en https://bingomaster.net/privacidad.html (sitio en [`website/`](website/LEEME.md); regenerar con `node scripts/build-website.mjs`).
 
 `electron-builder.yml` → sección `appx` con la identidad de Partner Center (Bingo Master,
 `SergioAedoMena.BingoMaster`). La CI genera `BingoMaster-Store-<versión>.appx` (sin firmar: la
