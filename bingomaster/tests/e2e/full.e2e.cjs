@@ -21,7 +21,8 @@ async function shot(page, name, manualName) {
   if (!MANUAL || !manualName) return;
   if (!styled.has(page)) { await page.addStyleTag({ content: '.toasts, .op-footer { visibility: hidden !important; } .notice { display: none !important; }' }); styled.add(page); }
   await page.waitForTimeout(250);
-  await page.screenshot({ path: path.join(MANUAL, manualName + '.jpg'), type: 'jpeg', quality: 80 });
+  if (process.env.MANUAL_FORMAT === 'png') await page.screenshot({ path: path.join(MANUAL, manualName + '.png'), type: 'png' });
+  else await page.screenshot({ path: path.join(MANUAL, manualName + '.jpg'), type: 'jpeg', quality: 80 });
 }
 
 // Cartón externo de prueba (por columnas)
