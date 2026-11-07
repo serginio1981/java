@@ -1,0 +1,20 @@
+{
+  "name": "bingo-importar-cartones",
+  "version": "0.1.0",
+  "description": "Importación de cartones de bingo externos con lectura por visión (Claude) e ingreso manual offline",
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  },
+  "devDependencies": {
+    "electron": "45.2.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

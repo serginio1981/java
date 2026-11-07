@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; style-src 'self'; script-src 'self'; connect-src 'none'">
+  <title>Importar cartones</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Importar cartones externos</h1>
+    <div class="evento">
+      <label>Evento
+        <select id="selEvento"></select>
+      </label>
+      <button id="btnNuevoEvento" class="sec">Nuevo evento</button>
+    </div>
+    <nav>
+      <button data-tab="captura" class="activo">Captura con IA</button>
+      <button data-tab="revision" id="navRevision" class="oculto">Revisión</button>
+      <button data-tab="manual">Ingreso manual</button>
+      <button data-tab="lista">Cartones del evento</button>
+      <button data-tab="ajustes">Ajustes</button>
+    </nav>
+  </header>
+
+  <div id="aviso" class="aviso oculto" role="status"></div>
+
+  <!-- CAPTURA -->
+  <section id="tab-captura" class="tab">
+    <div id="sinApi" class="aviso alerta oculto">
+      La lectura con IA no está disponible (sin API key). Use el <a href="#" data-ir="manual">ingreso manual</a>
+      o configure la clave en <a href="#" data-ir="ajustes">Ajustes</a>.
+    </div>
+    <div class="captura">
+      <div class="col">
+        <div class="guia">
+          <h3>Guía de captura</h3>
+          <ul>
+            <li>Cartón <b>plano</b> sobre la mesa, sin dobleces.</li>
+            <li><b>Buena luz</b> pareja; evite sombras de la mano o el celular.</li>
+            <li><b>Sin reflejos</b>: incline levemente si el cartón es plastificado o brillante.</li>
+            <li><b>Encuadre completo</b>: los 4 bordes, la serie y el folio deben verse.</li>
+            <li>Hasta <b>4 cartones</b> por foto, sin que se tapen entre sí.</li>
+            <li>Cámara de frente, no en ángulo.</li>
+          </ul>
+        </div>
+        <label>Cartones en la foto
+          <select id="selCantidad">
+            <option value="">No sé (1 a 4)</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="col">
+        <h3>Webcam</h3>
+        <div class="camara">
+          <video id="video" autoplay playsinline muted></video>
+          <div class="marco"></div>
+        </div>
+        <div class="fila">
+          <select id="selCamara"></select>
+          <button id="btnCamara" class="sec">Encender cámara</button>
+          <button id="btnFoto" disabled>Tomar foto</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <h3>Imagen</h3>
+        <div id="zonaDrop" class="drop" tabindex="0">
+          Arrastre una imagen aquí<br>o <label class="link">elija un archivo<input id="inpArchivo" type="file" accept="image/jpeg,image/png,image/webp" hidden></label>
+          <small>JPG, PNG o WEBP</small>
+        </div>
+        <h3>Carpeta compartida</h3>
+        <div class="fila">
+          <span id="lblCarpeta" class="muted">Sin carpeta</span>
+          <button id="btnRefrescarCarpeta" class="sec">Actualizar</button>
+        </div>
+        <label class="chk"><input id="chkOcultarProcesadas" type="checkbox" checked> Ocultar ya importadas</label>
+        <ul id="listaCarpeta" class="lista-archivos"></ul>
+      </div>
+    </div>
+
+    <div id="estadoLectura" class="estado oculto"></div>
+  </section>
+
+  <!-- REVISIÓN (confirmación obligatoria) -->
+  <section id="tab-revision" class="tab oculto">
+    <div class="revision">
+      <div class="foto">
+        <div class="fila">
+          <b>Foto original</b>
+          <button id="btnZoomMenos" class="sec">−</button>
+          <button id="btnZoomMas" class="sec">+</button>
+          <button id="btnDescartar" class="peligro">Descartar todo</button>
+        </div>
+        <div class="foto-scroll"><img id="imgRevision" alt="Foto de los cartones"></div>
+      </div>
+      <div class="lecturas">
+        <p class="muted">Revise celda por celda. Las celdas en <span class="dudosa-muestra">amarillo</span> son dudosas;
+          en <span class="error-muestra">rojo</span>, inválidas. Nada se guarda sin su confirmación.</p>
+        <div id="listaLecturas"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANUAL -->
+  <section id="tab-manual" class="tab oculto">
+    <div class="manual">
+      <div>
+        <p class="muted">Escriba serie y folio, Enter, y luego los 24 números. El cursor avanza solo
+          (<span id="lblOrden">por columnas</span>). Retroceso vuelve a la celda anterior.</p>
+        <div id="editorManual"></div>
+        <label class="chk"><input id="chkMantenerSerie" type="checkbox" checked> Mantener la serie para el siguiente cartón</label>
+        <div class="fila">
+          <button id="btnGuardarManual">Confirmar y guardar (Ctrl+Enter)</button>
+          <button id="btnLimpiarManual" class="sec">Limpiar</button>
+        </div>
+        <div id="dupManual" class="aviso alerta oculto"></div>
+      </div>
+      <div class="teclado" id="teclado"></div>
+    </div>
+  </section>
+
+  <!-- LISTA -->
+  <section id="tab-lista" class="tab oculto">
+    <div class="fila">
+      <label>Validar por folio <input id="inpBuscarFolio" placeholder="Folio"></label>
+      <button id="btnBuscarFolio">Buscar</button>
+      <span id="lblTotal" class="muted"></span>
+    </div>
+    <div id="resultadoFolio"></div>
+    <table class="tabla">
+      <thead><tr><th>Serie</th><th>Folio</th><th>Origen</th><th>Método</th><th>Guardado</th><th></th></tr></thead>
+      <tbody id="tbodyCartones"></tbody>
+    </table>
+  </section>
+
+  <!-- AJUSTES -->
+  <section id="tab-ajustes" class="tab oculto">
+    <div class="ajustes">
+      <fieldset>
+        <legend>API de Claude (único módulo con internet)</legend>
+        <p id="lblApiKey" class="muted"></p>
+        <p id="lblCifrado" class="muted"></p>
+        <div class="fila">
+          <input id="inpApiKey" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+          <button id="btnGuardarKey">Guardar cifrada</button>
+          <button id="btnBorrarKey" class="peligro">Borrar</button>
+        </div>
+        <label>Modelo (identificador)
+          <input id="inpModelo" spellcheck="false">
+        </label>
+        <small class="muted">Debe ser un modelo con visión y salidas estructuradas. Verifique los identificadores vigentes en docs.claude.com.</small>
+        <label class="chk"><input id="chkDoble" type="checkbox"> Doble lectura (dos llamadas independientes; duplica el costo)</label>
+      </fieldset>
+      <fieldset>
+        <legend>Carpeta compartida con el celular</legend>
+        <div class="fila">
+          <span id="lblCarpetaAjustes" class="muted"></span>
+          <button id="btnElegirCarpeta" class="sec">Elegir carpeta</button>
+          <button id="btnQuitarCarpeta" class="sec">Quitar</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Ingreso manual</legend>
+        <label>Orden de avance
+          <select id="selOrden"><option value="columnas">Por columnas (B, I, N, G, O)</option><option value="filas">Por filas</option></select>
+        </label>
+      </fieldset>
+    </div>
+  </section>
+
+  <script src="../shared/carton.js"></script>
+  <script src="editor.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
