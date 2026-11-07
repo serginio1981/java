@@ -1,0 +1,51 @@
+:root {
+  --bg: #f4f6fa; --panel: #fff; --ink: #172033; --muted: #5e6a80; --line: #d8dee8;
+  --accent: #1f6feb; --ok: #137a3a; --err: #c62828; --info: #345;
+  --cell-off-bg: #eef1f6; --cell-off-ink: #8a94a6; --last-outline: #172033;
+  color-scheme: light;
+}
+body { background: var(--bg); color: var(--ink); }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.op-loading { padding: 40px; }
+.op { display: grid; grid-template-rows: auto 1fr auto; height: 100%; }
+.op-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 18px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.op-header h1 { margin: 0; font-size: 20px; }
+.op-header > div:first-child { min-width: 0; }
+.pub-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.op-main { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; padding: 16px; min-height: 0; }
+.op-left { display: flex; flex-direction: column; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.op-input-label { font-weight: 600; }
+.op-input-row { display: flex; gap: 8px; }
+.op-input { width: 100%; font-size: 44px; font-weight: 800; padding: 6px 12px; border: 2px solid var(--line); border-radius: 10px; text-align: center; font-variant-numeric: tabular-nums; }
+.op-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31,111,235,.25); }
+button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+button.danger { color: var(--err); border-color: var(--err); }
+select { font: inherit; padding: 7px; border-radius: 8px; border: 1px solid var(--line); }
+.feedback { min-height: 44px; padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+.feedback.ok { background: #e3f6ea; color: var(--ok); }
+.feedback.error { background: #fde6e6; color: var(--err); }
+.feedback.info { background: #e8eef8; color: var(--info); }
+.op-last { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.op-last-ball { width: 140px; height: 140px; border-radius: 50%; display: grid; place-items: center; align-content: center; background: var(--c); color: var(--ink); }
+.op-last-ball span { font-size: 26px; font-weight: 800; }
+.op-last-ball strong { font-size: 62px; line-height: 1; }
+.op-last-ball.empty { background: var(--cell-off-bg); color: var(--muted); font-size: 40px; }
+.op-recent { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; min-height: 30px; }
+.chip { padding: 4px 10px; border-radius: 999px; background: var(--c); color: var(--ink); font-weight: 700; }
+.op-count { font-size: 18px; text-align: center; }
+.op-count strong { font-size: 28px; }
+.op-game { border-top: 1px dashed var(--line); padding-top: 10px; font-size: 13px; }
+.op-board { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.op-board .board { flex: 1; --board-gap: 6px; }
+.op-board .board-letter { font-size: 28px; }
+.op-board .board-cell { font-size: 22px; }
+.op-board .board-cell:hover:not(.on) { border-color: var(--accent); }
+.op-footer { padding: 6px 18px; border-top: 1px solid var(--line); background: var(--panel); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(10,15,25,.45); display: grid; place-items: center; }
+.modal { background: var(--panel); border-radius: 12px; padding: 20px 24px; max-width: 460px; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.modal h2 { margin-top: 0; font-size: 20px; }
+.row { display: flex; gap: 8px; justify-content: flex-end; }
+/* En fondo claro, la N blanca no contrasta: se usa gris oscuro solo en el operador. */
+.op .l-N { --c: #3d4558; --ink: #ffffff; }
