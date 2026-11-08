@@ -12,7 +12,7 @@ import type { ProviderConfig } from '../import-ai/vision';
 export const DEFAULT_MODEL = PROVIDERS.anthropic.defaultModel;
 /** Si cambia lo que se envía al proveedor de IA, subir la versión para volver a pedir consentimiento. */
 export const CONSENT_VERSION = '1';
-export const PRIVACY_URL = 'https://bingomaster.net/privacidad.html';
+export { PRIVACY_URL } from '../../shared/links';
 
 export interface SafeStorageLike {
   isEncryptionAvailable(): boolean;

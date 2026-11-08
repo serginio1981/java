@@ -1,6 +1,23 @@
 # Bingo Master — Ficha de Microsoft Store
 
-Partner Center → Aplicaciones y juegos → Bingo Master → Envío 1 → **Descripciones de Store → Español (España)**.
+> **Estado:** la versión **0.2.0** fue certificada y publicada en Microsoft Store
+> (ID de producto `9NJNBTJDGTZ3`, https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS).
+> Este documento corresponde al **envío 2 (versión 0.3.0)**.
+
+## Cómo publicar la actualización 0.3.0
+
+1. Partner Center → Aplicaciones y juegos → Bingo Master → **Actualizar** (crea un envío nuevo copiando el anterior).
+2. **Paquetes:** quite `BingoMaster-Store-0.2.0.appx` y suba `BingoMaster-Store-0.3.0.appx` (artefacto
+   **BingoMaster-Store** de la última compilación de GitHub Actions). La versión del paquete debe ser mayor
+   que la publicada; 0.3.0.0 > 0.2.0.0.
+3. **Funcionalidades restringidas:** si vuelve a pedir la justificación de `runFullTrust`, use el mismo texto de 464 caracteres del envío anterior.
+4. **Descripciones de Store → Español (España):** reemplace la **Descripción** y las **Características** por las de
+   abajo (cambió la parte de IA) y complete **Novedades de esta versión**.
+5. **Propiedades:** sin cambios. La política de privacidad (versión 1.1) ya está en `https://bingomaster.net/privacidad.html`
+   (suba antes el sitio actualizado).
+6. Enviar a la Store.
+
+Partner Center → Aplicaciones y juegos → Bingo Master → Envío 2 → **Descripciones de Store → Español (España)**.
 
 Copie cada bloque en el campo indicado. Las imágenes están en esta misma carpeta:
 `store/capturas/` (capturas de pantalla) y `store/imagenes/` (logotipos y arte).
@@ -53,7 +70,13 @@ Bingo Master es una herramienta para conducir bingos presenciales. No maneja din
 
 ## Novedades de esta versión
 
-**Dejar en blanco** (es el primer envío). Para versiones futuras, describa ahí los cambios.
+```
+Versión 0.3.0
+- Lectura de cartones con IA: ahora puede elegir el proveedor (Anthropic Claude, OpenAI GPT, Google Gemini o un servidor compatible con OpenAI, como Ollama o LM Studio, incluso en su propio equipo).
+- Cada proveedor guarda su propia clave cifrada, modelo y autorización de privacidad. Botón "Listar modelos" para elegir el modelo.
+- Menú Ayuda: enlaces al sitio web, a Microsoft Store para calificar la app y a soporte.
+- Manual y política de privacidad actualizados.
+```
 
 ---
 
@@ -100,6 +123,7 @@ Mínimo 1, se recomiendan 4 o más. Formato PNG, 1366×768 o mayor. Súbalas en 
 | `06-eventos-y-juegos.png` | Eventos y secuencia de juegos con figuras configurables |
 | `07-editor-de-figuras.png` | Cree sus propias figuras en el editor |
 | `08-carton-externo.png` | Registre cartones de otro origen con el ingreso manual rápido |
+| `09-proveedores-de-ia.png` (nueva en 0.3.0) | Elija el proveedor de IA para leer cartones: Claude, GPT, Gemini o un servidor compatible |
 
 > La captura que ya subió (pantalla pública) corresponde a `01-pantalla-publica.png`.
 

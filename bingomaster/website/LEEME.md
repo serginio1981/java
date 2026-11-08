@@ -29,8 +29,9 @@ que `https://bingomaster.net/index.html` y `https://bingomaster.net/privacidad.h
 
 1. En Partner Center use como URL de privacidad: `https://bingomaster.net/privacidad.html`
    y como sitio web: `https://bingomaster.net/`.
-2. Cuando la app esté en Microsoft Store, en `index.html` cambie el enlace del botón con
-   `id="enlace-store"` por la URL de la ficha de la Store y su texto por "Descargar en Microsoft Store".
+2. Los botones de descarga apuntan a la ficha de Microsoft Store
+   (`https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS`). Si la URL cambiara, búsquela en
+   `index.html` (aparece varias veces) y en `../src/shared/links.ts` (enlaces de la app).
 
 ## Si cambia la política de privacidad
 

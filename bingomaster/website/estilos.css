@@ -134,3 +134,6 @@ details p { color: var(--suave); margin: 10px 0 0; }
   .hero { padding-top: 32px; }
   .seccion { padding: 44px 0; }
 }
+
+.descarga .pequeno { font-size: .95rem; margin-top: 14px; }
+.descarga .pequeno a { color: #ffd27a; }

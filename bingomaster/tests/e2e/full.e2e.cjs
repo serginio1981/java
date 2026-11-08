@@ -107,6 +107,8 @@ async function typeCard(op, series, folio, grid) {
   // ---------- Manual de usuario y menú ----------
   const menu = await app.evaluate(({ Menu }) => Menu.getApplicationMenu().items.map((i) => i.label.replace('&', '') + ':' + i.submenu.items.map((s) => s.label).join('|')));
   assert.ok(menu.some((m) => m.startsWith('Ayuda:Manual de usuario')), 'menú Ayuda → Manual de usuario: ' + menu.join(' / '));
+  const ayuda = menu.find((m) => m.startsWith('Ayuda:')) || '';
+  for (const item of ['Sitio web de Bingo Master', 'Ver en Microsoft Store', 'Calificar Bingo Master en Microsoft Store', 'Escribir a soporte']) assert.ok(ayuda.includes(item), 'falta en Ayuda: ' + item);
   const manP = app.waitForEvent('window');
   await op.click('.help-btn');
   const man = await manP;

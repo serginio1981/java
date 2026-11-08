@@ -6,6 +6,10 @@ importación de cartones con IA.
 
 ## Estado
 
+**Publicada en Microsoft Store** (versión 0.2.0): https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS —
+ID `9NJNBTJDGTZ3`. Versión en desarrollo: **0.3.0** (proveedor de IA elegible). Enlaces públicos
+centralizados en `src/shared/links.ts`.
+
 Las 5 fases están implementadas y probadas en Linux (pruebas unitarias + prueba de punta a
 punta en Electron) y empaquetadas para Windows en GitHub Actions.
 
