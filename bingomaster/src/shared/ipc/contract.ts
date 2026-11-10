@@ -208,6 +208,8 @@ export interface Commands {
   'events:create': { args: [NewEventInput]; result: Result<{ event: EventView }> };
   'events:update': { args: [number, { name: string; date: string; accumulateCalls: boolean }]; result: Result };
   'events:activate': { args: [number]; result: Result };
+  'events:summary': { args: [number]; result: Result<{ cards: number; calls: number; winners: number; games: number }> };
+  'events:delete': { args: [number]; result: Result };
   // Juegos
   'games:add': { args: [{ name: string; patternId: number }]; result: Result };
   'games:update': { args: [number, { name: string; patternId: number }]; result: Result };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { GameView, OperatorState } from '../../shared/ipc/contract';
+import type { EventView, GameView, OperatorState } from '../../shared/ipc/contract';
 import { call, toast } from '../ui/api';
 import { Modal } from '../ui/Modal';
 
@@ -7,6 +7,7 @@ const today = (): string => new Date().toISOString().slice(0, 10);
 
 export function EventsView({ state }: { state: OperatorState }) {
   const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<EventView | null>(null);
   const ev = state.event;
   return (
     <div className="page-2col">
@@ -22,7 +23,10 @@ export function EventsView({ state }: { state: OperatorState }) {
               <tr key={e.id} className={e.id === ev?.id ? 'current' : ''}>
                 <td>{e.name}</td><td>{e.date}</td><td>{e.seriesCode}</td>
                 <td>{e.accumulateCalls ? 'acumulan' : 'por juego'}</td>
-                <td>{e.id === ev?.id ? <strong>Activo</strong> : <button onClick={() => void call('events:activate', e.id)}>Activar</button>}</td>
+                <td className="ev-actions">
+                  {e.id === ev?.id ? <strong>Activo</strong> : <button onClick={() => void call('events:activate', e.id)}>Activar</button>}
+                  <button className="danger" onClick={() => setDeleting(e)} aria-label={`Eliminar ${e.name}`}>Eliminar</button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -33,7 +37,39 @@ export function EventsView({ state }: { state: OperatorState }) {
         <GamesEditor state={state} />
       </section>
       {creating && <CreateEvent onClose={() => setCreating(false)} />}
+      {deleting && <DeleteEvent event={deleting} isActive={deleting.id === ev?.id} onlyOne={state.events.length === 1} onClose={() => setDeleting(null)} />}
     </div>
+  );
+}
+
+function DeleteEvent({ event, isActive, onlyOne, onClose }: { event: EventView; isActive: boolean; onlyOne: boolean; onClose: () => void }) {
+  const [sum, setSum] = useState<{ cards: number; calls: number; winners: number; games: number } | null>(null);
+  const [typed, setTyped] = useState('');
+  useEffect(() => { void call('events:summary', event.id).then((r) => { if (r) setSum(r); }); }, [event.id]);
+  async function remove(): Promise<void> {
+    if (await call('events:delete', event.id)) { toast('ok', `Evento "${event.name}" eliminado`); onClose(); }
+  }
+  return (
+    <Modal title="Eliminar evento" onClose={onClose}>
+      <div className="form">
+        <p>Se eliminará <strong>{event.name}</strong> ({event.date}, serie {event.seriesCode}) con todo su historial:</p>
+        {sum ? (
+          <ul className="del-summary">
+            <li>{sum.games} juego(s)</li>
+            <li>{sum.cards} cartón(es), propios y externos, con sus fotos</li>
+            <li>{sum.calls} número(s) cantado(s)</li>
+            <li>{sum.winners} ganador(es)</li>
+          </ul>
+        ) : <p className="muted">Contando…</p>}
+        <p className="warn"><strong>No se puede deshacer.</strong> Si quiere conservar una copia, use antes Ajustes → Respaldar.</p>
+        {isActive && <small className="muted">{onlyOne ? 'Es el único evento: se creará un "Evento de prueba" vacío para seguir usando la aplicación.' : 'Es el evento activo: se activará el evento más reciente que quede.'}</small>}
+        <label>Para confirmar escriba ELIMINAR <input value={typed} onChange={(e) => setTyped(e.target.value)} autoFocus /></label>
+        <div className="row">
+          <button className="danger solid" disabled={typed.trim().toUpperCase() !== 'ELIMINAR'} onClick={() => void remove()}>Eliminar definitivamente</button>
+          <button onClick={onClose}>Cancelar</button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 

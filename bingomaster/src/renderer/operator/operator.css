@@ -217,3 +217,10 @@ ol.games li.finished { opacity: .65; }
 .empty-box { display: flex; flex-direction: column; gap: 8px; align-items: center; }
 .help-btn { font-weight: 700; color: var(--accent); }
 .import-grid label { display: flex; gap: 8px; align-items: center; }
+
+/* Eliminar evento */
+td.ev-actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; white-space: nowrap; }
+button.danger.solid { background: var(--err); color: #fff; border-color: var(--err); }
+button.danger.solid:disabled { opacity: .45; }
+.del-summary { margin: 0 0 4px 18px; padding: 0; }
+p.warn { color: var(--err); margin: 4px 0; }

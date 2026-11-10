@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, screen, session, shell } from 'electron';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, watch, type FSWatcher } from 'node:fs';
-import { basename, extname, join } from 'node:path';
+import { basename, extname, join, resolve, sep } from 'node:path';
 import type { CommandName, Commands, OperatorState, Overlay, Result } from '../shared/ipc/contract';
 import { FOLDER_CHANNEL, STATE_CHANNEL } from '../shared/ipc/contract';
 import { addCall, undoLastCall } from './calls/calls';
@@ -9,7 +9,7 @@ import {
 } from './cards/cards';
 import { backupTo, getMeta, inspectBackup, openDatabase, setMeta, type Db } from './db/database';
 import { appError } from './errors';
-import { activateEvent, createEvent, DEFAULT_SEQUENCE, ensureActiveEvent, getActiveEvent, updateEvent } from './events/events';
+import { activateEvent, createEvent, DEFAULT_SEQUENCE, deleteEvent, ensureActiveEvent, eventSummary, getActiveEvent, updateEvent } from './events/events';
 import { addGame, finishGame, loadDefaultSequence, moveGame, removeGame, setCurrentGame, updateGame } from './games/games';
 import { listModels, readCards } from './import-ai/vision';
 import { createPattern, ensureBuiltinPatterns, removePattern, updatePattern } from './patterns/patterns';
@@ -127,6 +127,18 @@ function main(): void {
     });
     handle('events:update', (id, u) => { updateEvent(db, id, u); return ok; });
     handle('events:activate', (id) => { activateEvent(db, id); overlay = null; return ok; });
+    handle('events:summary', (id) => ({ ok: true, ...eventSummary(db, id) }), { mutates: false });
+    handle('events:delete', (id) => {
+      const { imagePaths, wasActive } = deleteEvent(db, id);
+      for (const p of imagePaths) {
+        // Solo fotos dentro de la carpeta de imágenes de la app.
+        if (resolve(p).startsWith(resolve(imagesDir) + sep)) rmSync(p, { force: true });
+      }
+      if (wasActive) { overlay = null; notice = null; }
+      // La app necesita siempre un evento activo: si no queda ninguno, se crea uno de prueba.
+      ensureActiveEvent(db, new Date().toISOString().slice(0, 10));
+      return ok;
+    });
 
     handle('games:add', (g) => { addGame(db, eventId(), g.name, g.patternId); return ok; });
     handle('games:update', (id, g) => { updateGame(db, eventId(), id, g.name, g.patternId); return ok; });

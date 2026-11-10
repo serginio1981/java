@@ -366,6 +366,20 @@ async function typeCard(op, series, folio, grid) {
   assert.equal(await op.textContent('.op-count strong'), '9');
   await tab(op, 'Cartones');
   await op.waitForSelector('.cards-view h2:has-text("Cartones del evento (43)")');
+
+  // ---------- Eliminar evento (el de prueba, no activo) ----------
+  await tab(op, 'Evento y juegos');
+  const before = await op.$$eval('table.list tbody tr', (r) => r.length);
+  await op.click('table.list tr:has-text("Evento de prueba") button:has-text("Eliminar")');
+  await op.waitForSelector('.modal .del-summary');
+  const del = op.locator('.modal button:has-text("Eliminar definitivamente")');
+  assert.equal(await del.isDisabled(), true, 'exige escribir ELIMINAR');
+  await op.fill('.modal input', 'eliminar');
+  await shot(op, '9-eliminar-evento');
+  await del.click();
+  await op.waitForFunction((n) => document.querySelectorAll('table.list tbody tr').length === n - 1, before);
+  assert.equal(await op.locator('table.list tr:has-text("Evento de prueba")').count(), 0);
+  await op.waitForSelector('.op-title h1:has-text("Bingo Parroquia San José")');
   await app.close();
   api.close();
 

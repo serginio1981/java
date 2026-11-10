@@ -102,3 +102,40 @@ export function setCurrentGameId(db: Db, eventId: number, gameId: number | null)
 export function ensureActiveEvent(db: Db, today: string): EventView {
   return getActiveEvent(db) ?? createEvent(db, { name: 'Evento de prueba', date: today, seriesCode: 'PRUEBA', accumulateCalls: true });
 }
+
+export interface EventSummary { cards: number; calls: number; winners: number; games: number }
+
+export function eventSummary(db: Db, id: number): EventSummary {
+  if (!getEvent(db, id)) throw appError('evento', 'El evento no existe');
+  const n = (sql: string): number => (db.prepare(sql).get(id) as { n: number }).n;
+  return {
+    cards: n('SELECT COUNT(*) AS n FROM cards WHERE event_id = ?'),
+    calls: n('SELECT COUNT(*) AS n FROM calls WHERE event_id = ?'),
+    winners: n('SELECT COUNT(*) AS n FROM winners WHERE event_id = ?'),
+    games: n('SELECT COUNT(*) AS n FROM games WHERE event_id = ?'),
+  };
+}
+
+/**
+ * Elimina un evento y todo lo suyo (juegos, cartones, números, ganadores).
+ * Devuelve las rutas de las fotos de cartones externos para borrarlas del disco.
+ * Si era el evento activo, activa el más reciente que quede (o ninguno).
+ */
+export function deleteEvent(db: Db, id: number): { imagePaths: string[]; wasActive: boolean } {
+  if (!getEvent(db, id)) throw appError('evento', 'El evento no existe');
+  return transaction(db, () => {
+    const imagePaths = (db.prepare('SELECT source_image_path AS p FROM cards WHERE event_id = ? AND source_image_path IS NOT NULL').all(id) as { p: string }[]).map((r) => r.p);
+    db.prepare('DELETE FROM winners WHERE event_id = ?').run(id);
+    db.prepare('DELETE FROM calls WHERE event_id = ?').run(id);
+    db.prepare('UPDATE events SET current_game_id = NULL WHERE id = ?').run(id);
+    db.prepare('DELETE FROM games WHERE event_id = ?').run(id);
+    db.prepare('DELETE FROM cards WHERE event_id = ?').run(id);
+    db.prepare('DELETE FROM events WHERE id = ?').run(id);
+    const wasActive = getMeta(db, ACTIVE_KEY) === String(id);
+    if (wasActive) {
+      const next = listEvents(db)[0];
+      setMeta(db, ACTIVE_KEY, next ? String(next.id) : null);
+    }
+    return { imagePaths, wasActive };
+  });
+}

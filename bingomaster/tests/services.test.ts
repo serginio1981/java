@@ -9,7 +9,7 @@ import {
   addExternalCard, cardIndex, findByFolio, findExact, generateOwnCards, getCard, listCards, ownCardsInRange, summary,
 } from '../src/main/cards/cards';
 import { openDatabase, type Db } from '../src/main/db/database';
-import { createEvent, getActiveEvent, getEvent } from '../src/main/events/events';
+import { activateEvent, createEvent, deleteEvent, eventSummary, getActiveEvent, getEvent, listEvents } from '../src/main/events/events';
 import { addGame, allGamesFinished, finishGame, getCurrentGame, listGames, loadDefaultSequence, moveGame, nextGame, removeGame, setCurrentGame } from '../src/main/games/games';
 import { DEFAULT_SEQUENCE } from '../src/main/events/events';
 import { createPattern, ensureBuiltinPatterns, findPatternByName, listPatterns, removePattern } from '../src/main/patterns/patterns';
@@ -210,6 +210,40 @@ describe('juegos, validación y ganadores', () => {
     expect(() => removeGame(db, ev, games[0]!.id)).toThrow(/no se puede quitar/);
     removeGame(db, ev, games[4]!.id);
     expect(listGames(db, ev).map((g) => g.position)).toEqual([1, 2, 3, 4]);
+  });
+});
+
+describe('eliminar evento', () => {
+  it('borra el evento con todo su historial y activa el más reciente que quede', () => {
+    const { db, ev } = setup();
+    const otro = createEvent(db, { name: 'Antiguo', date: '2025-01-01', seriesCode: 'OLD', accumulateCalls: true });
+    activateEvent(db, ev);
+    generateOwnCards(db, ev, 3, seededRng(1));
+    ext(db, ev, 'EXT', '9');
+    for (const n of [1, 16, 31]) addCall(db, ev, n);
+    expect(eventSummary(db, ev)).toMatchObject({ cards: 4, calls: 3, games: 4 });
+    const r = deleteEvent(db, ev);
+    expect(r.wasActive).toBe(true);
+    expect(getEvent(db, ev)).toBeNull();
+    expect(getActiveEvent(db)?.id).toBe(otro.id);
+    for (const t of ['cards', 'calls', 'games', 'winners']) {
+      expect((db.prepare(`SELECT COUNT(*) AS n FROM ${t} WHERE event_id = ?`).get(ev) as { n: number }).n).toBe(0);
+    }
+    // El otro evento queda intacto
+    expect(listGames(db, otro.id)).toHaveLength(4);
+  });
+
+  it('con ganadores registrados también se puede borrar; sin eventos no queda activo', () => {
+    const { db, ev } = setup();
+    ext(db, ev, 'EXT', '1');
+    for (const n of [1, 2, 3]) addCall(db, ev, n);
+    const card = findByFolio(db, ev, '1')[0]!;
+    registerWinner(db, ev, card.id);
+    expect(eventSummary(db, ev).winners).toBe(1);
+    deleteEvent(db, ev);
+    expect(listEvents(db)).toHaveLength(0);
+    expect(getActiveEvent(db)).toBeNull();
+    expect(() => deleteEvent(db, ev)).toThrow(/no existe/);
   });
 });
 
