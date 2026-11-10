@@ -226,5 +226,5 @@ Sergio Aedo Mena
 - [ ] Al menos 4 capturas con leyenda.
 - [ ] Palabras clave ingresadas (7).
 - [ ] Política de privacidad publicada en `https://bingomaster.net/privacidad.html` (página Propiedades).
-- [ ] Paquete `BingoMaster-Store-0.2.0.appx` subido en **Paquetes**.
+- [ ] Paquete `BingoMaster-Store-0.3.0.appx` subido en **Paquetes** (y quitado el 0.2.0).
 - [ ] Clasificación por edades completada (cuestionario IARC).
