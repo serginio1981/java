@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws://localhost:*">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BingoMaster — Manual de usuario</title>
+  <link rel="stylesheet" href="./manual/manual.css">
+</head>
+<body>
+<aside class="toc" aria-label="Índice">
+  <div class="brand">BingoMaster<small>Manual de usuario</small></div>
+  <input id="buscar" type="search" placeholder="Buscar en el manual…" aria-label="Buscar en el manual">
+  <nav>
+    <a href="#inicio">1. Qué es BingoMaster</a>
+    <a href="#instalacion">2. Instalación</a>
+    <a href="#rapido">3. Inicio rápido</a>
+    <a href="#ventanas">4. Ventanas y pantalla pública</a>
+    <a href="#eventos">5. Eventos y juegos</a>
+    <a href="#cartones">6. Cartones propios e impresión</a>
+    <a href="#jugar">7. Conducir un juego</a>
+    <a href="#bingo">8. Validar un ¡BINGO!</a>
+    <a href="#terminar">9. Terminar un juego</a>
+    <a href="#figuras">10. Figuras</a>
+    <a href="#externos">11. Cartones externos: ingreso manual</a>
+    <a href="#ia">12. Importar cartones con IA</a>
+    <a href="#ajustes">13. Ajustes</a>
+    <a href="#datos">14. Datos, guardado y respaldo</a>
+    <a href="#atajos">15. Atajos de teclado</a>
+    <a href="#reglas">16. Reglas de validación</a>
+    <a href="#problemas">17. Problemas frecuentes</a>
+  </nav>
+  <button id="imprimir" type="button">Imprimir / guardar PDF</button>
+</aside>
+
+<main id="contenido">
+<p id="sin-resultados" class="aviso" hidden>No hay secciones que coincidan con la búsqueda.</p>
+
+<section id="inicio">
+  <h1>1. Qué es BingoMaster</h1>
+  <p>BingoMaster es una aplicación de escritorio para Windows que ayuda a conducir bingos presenciales. Los números salen de una tómbola física y el operador los digita en la aplicación. Como la aplicación conoce el contenido de cada cartón registrado, puede <b>validar un "¡bingo!" solo con el folio</b>, sin revisar el cartón físico.</p>
+  <ul>
+    <li><b>Ventana del operador</b> (en el notebook): ingreso de números, validación, configuración.</li>
+    <li><b>Pantalla pública</b> (en el proyector): tablero, último número, figura en juego y anuncio de ganadores.</li>
+    <li><b>Sin internet:</b> todo funciona offline, excepto la importación de cartones con IA (sección 12).</li>
+    <li><b>Guardado automático:</b> cada acción queda guardada al instante; si la aplicación se cierra, al reabrirla se recupera la sesión.</li>
+  </ul>
+</section>
+
+<section id="instalacion">
+  <h2>2. Instalación</h2>
+  <h3>Desde Microsoft Store (recomendado)</h3>
+  <ol>
+    <li>Abra <b>Microsoft Store</b> en Windows y busque <b>"Bingo Master"</b>, o use el enlace de <code>bingomaster.net</code>.</li>
+    <li>Pulse <b>Obtener</b> o <b>Instalar</b>. La aplicación queda en el menú Inicio.</li>
+    <li>Las <b>actualizaciones llegan automáticamente</b> por la Store.</li>
+  </ol>
+  <p class="importante"><b>Importante:</b> si desinstala una aplicación de la Store, Windows <b>borra sus datos</b> (eventos, cartones, ganadores). Antes de desinstalar o cambiar de equipo, use Ajustes → <b>Respaldar base de datos</b> (sección 14).</p>
+  <h3>Con instalador (.exe)</h3>
+  <p>Si recibió el archivo <code>BingoMaster-Setup-x.y.z.exe</code>, ejecútelo. Como no está firmado digitalmente, Windows SmartScreen puede advertir: pulse <b>Más información → Ejecutar de todas formas</b>. Con esta versión, desinstalar <b>no</b> borra los datos.</p>
+  <p class="nota">Requisitos: Windows 10 u 11 de 64 bits. Para la pantalla pública, un proyector o segundo monitor conectado al notebook (recomendado 1920×1080).</p>
+  <p class="nota">Menú <b>Ayuda</b>: sitio web, ver la app en Microsoft Store, calificarla y escribir a soporte.</p>
+</section>
+
+<section id="rapido">
+  <h2>3. Inicio rápido</h2>
+  <ol class="pasos">
+    <li><b>Evento y juegos → Nuevo evento.</b> Nombre, fecha y código de serie (ej. <code>NOV26</code>). Se carga una secuencia de juegos inicial.</li>
+    <li><b>Cartones → Generar</b> la cantidad necesaria y <b>Exportar PDF</b> para imprimirlos.</li>
+    <li>Conecte el proyector y pulse <b>Abrir pública</b> (arriba a la derecha).</li>
+    <li>En <b>Juego</b>, digite cada número que sale de la tómbola y pulse <kbd>Enter</kbd>.</li>
+    <li>Cuando alguien grita ¡bingo!, pulse <kbd>F2</kbd>, escriba el folio y la aplicación dirá <b>VÁLIDO</b> o <b>NO VÁLIDO</b>.</li>
+    <li>Registre el ganador, muéstrelo en la pantalla pública y pulse <b>Terminar juego</b> para pasar al siguiente.</li>
+  </ol>
+</section>
+
+<section id="ventanas">
+  <h2>4. Ventanas y pantalla pública</h2>
+  <p>La barra superior de la ventana del operador tiene las pestañas de trabajo y, a la derecha, los controles de la pantalla pública:</p>
+  <ul>
+    <li><b>Selector de pantalla:</b> lista los monitores detectados. El proyector aparece como "— proyector".</li>
+    <li><b>Abrir pública / Mover pública:</b> abre la pantalla pública en la pantalla elegida. En un proyector se abre a pantalla completa; en el monitor principal se abre en ventana para no tapar el panel.</li>
+    <li><b>Pantalla completa / Ventana</b> y <b>Cerrar</b>.</li>
+  </ul>
+  <figure><img src="./manual/img/publica.jpg" alt="Pantalla pública"><figcaption>Pantalla pública: último número con su letra, anteriores, figura en juego y tablero 1–75 con colores por letra.</figcaption></figure>
+  <p>La pantalla pública se actualiza sola con cada acción del operador. Nunca muestra información interna (por ejemplo, cuántos cartones están a un número).</p>
+  <p class="nota">El menú <b>Ventana pública</b> de la barra superior ofrece las mismas opciones.</p>
+</section>
+
+<section id="eventos">
+  <h2>5. Eventos y juegos</h2>
+  <p>Un <b>evento</b> agrupa los cartones (propios y externos), la secuencia de juegos, los números cantados y los ganadores. Solo hay un evento activo a la vez.</p>
+  <figure><img src="./manual/img/eventos.jpg" alt="Eventos y secuencia de juegos"><figcaption>Pestaña "Evento y juegos": lista de eventos, datos del evento activo y secuencia de juegos.</figcaption></figure>
+  <h3>Crear un evento</h3>
+  <ul>
+    <li><b>Nombre</b> y <b>fecha</b>.</li>
+    <li><b>Código de serie</b>: 1 a 12 letras o números, sin espacios. Los cartones propios se numeran <code>SERIE-0001</code>, <code>SERIE-0002</code>… No se puede cambiar después.</li>
+    <li><b>Números acumulados</b> (marcado por defecto): los números cantados valen para todos los juegos del evento. Si lo desmarca, cada juego empieza con el tablero vacío. Solo se puede cambiar mientras no haya números cantados.</li>
+  </ul>
+  <p>Al crearlo, el evento queda activo y con la secuencia inicial: <i>Primeros 3 → Línea (cualquiera) → X → Cartón lleno</i>. Para cambiar de evento use <b>Activar</b> en la lista.</p>
+  <p><b>Eliminar un evento:</b> botón <b>Eliminar</b> en la lista. Se muestra cuántos juegos, cartones, números y ganadores se borrarán; para confirmar escriba <b>ELIMINAR</b>. Se borra todo su historial, incluidas las fotos de cartones externos, y <b>no se puede deshacer</b> (haga antes un respaldo en Ajustes si quiere conservar una copia). Si elimina el evento activo se activa el más reciente que quede; si no queda ninguno, se crea un "Evento de prueba" vacío.</p>
+  <h3>Secuencia de juegos</h3>
+  <ul>
+    <li><b>Agregar juego:</b> elija la figura y pulse "Agregar juego".</li>
+    <li><b>↑ / ↓</b> cambian el orden; <b>Editar</b> cambia el nombre o la figura (la figura no se puede cambiar si el juego ya tiene ganadores).</li>
+    <li><b>Quitar:</b> solo juegos sin números ni ganadores.</li>
+    <li><b>Jugar:</b> pone ese juego en curso. <b>Reabrir:</b> vuelve a abrir un juego terminado.</li>
+    <li>Si un evento no tiene juegos (por ejemplo, uno creado con una versión anterior), aparece <b>Cargar secuencia inicial</b>.</li>
+  </ul>
+</section>
+
+<section id="cartones">
+  <h2>6. Cartones propios e impresión</h2>
+  <figure><img src="./manual/img/cartones.jpg" alt="Cartones"><figcaption>Pestaña "Cartones": generación, impresión a PDF y lista de cartones del evento.</figcaption></figure>
+  <h3>Generar</h3>
+  <p>Indique la cantidad y pulse <b>Generar</b>. Los cartones son aleatorios, cumplen los rangos de cada columna y <b>nunca repiten la misma disposición</b> dentro del evento. El folio es correlativo y continúa si genera más después (máximo 50.000 por vez; puede repetir la generación).</p>
+  <h3>Exportar e imprimir</h3>
+  <ol>
+    <li>Elija <b>Papel</b> (Carta o A4) y <b>cartones por hoja</b> (1, 2 o 4).</li>
+    <li>Opcional: indique el rango de folios <b>desde / hasta</b>. Vacío = todos los propios. Así se <b>reimprime</b> un rango.</li>
+    <li>Pulse <b>Exportar PDF…</b> y elija dónde guardarlo. Imprima el PDF con su lector habitual, a escala 100%.</li>
+  </ol>
+  <figure class="chica"><img src="./manual/img/pdf.jpg" alt="Hoja de cartones en PDF"><figcaption>Hoja A4 con 4 cartones: nombre del evento, serie y folio visibles, cabecera B-I-N-G-O y líneas de corte.</figcaption></figure>
+  <h3>Lista de cartones</h3>
+  <p>La lista muestra serie, folio y origen (propio o externo). Use <b>Buscar folio</b> y <b>Ver</b> para revisar un cartón (y su foto, si vino de la importación con IA).</p>
+</section>
+
+<section id="jugar">
+  <h2>7. Conducir un juego</h2>
+  <figure><img src="./manual/img/juego.jpg" alt="Panel de juego"><figcaption>Pestaña "Juego": ingreso de números (izquierda), tablero (centro) y juego en curso (derecha).</figcaption></figure>
+  <h3>Cantar un número</h3>
+  <ul>
+    <li>Escriba el número en el teclado numérico y pulse <kbd>Enter</kbd>. También acepta la letra: <code>B12</code>.</li>
+    <li>Si el número está fuera de rango (1 a 75), ya salió o no corresponde a la letra escrita, aparece un aviso rojo y <b>no se registra</b>.</li>
+    <li>Un clic en el tablero <b>solo selecciona</b> el número; hay que pulsar <kbd>Enter</kbd> para cantarlo (evita errores por clic accidental).</li>
+    <li><kbd>Esc</kbd> borra lo escrito.</li>
+  </ul>
+  <h3>Deshacer</h3>
+  <p>Con el campo vacío, pulse <kbd>−</kbd> del teclado numérico (o <kbd>Ctrl</kbd>+<kbd>Z</kbd>, o el botón). Se pide confirmación; el foco queda en "Cancelar", así que <kbd>Enter</kbd> cancela. Solo se deshacen números del juego en curso.</p>
+  <h3>Panel derecho (solo operador)</h3>
+  <ul>
+    <li>Juego actual (<i>Juego 2 de 5</i>), figura dibujada y su descripción. Los grupos ("cualquiera de") rotan entre sus variantes.</li>
+    <li><b>Completan la figura</b> y <b>a 1 número</b>: cuántos cartones registrados del evento están en esa situación. No se muestra en la pantalla pública.</li>
+    <li>Ganadores del juego y botón <b>Terminar juego</b>.</li>
+  </ul>
+</section>
+
+<section id="bingo">
+  <h2>8. Validar un ¡BINGO!</h2>
+  <ol>
+    <li>Pulse <b>¡BINGO!</b>, <kbd>F2</kbd> o <kbd>*</kbd>.</li>
+    <li>Escriba el folio tal como lo dice el jugador: <code>12</code>, <code>0012</code> o <code>NOV26-0012</code>. Si el folio existe en más de una serie, elija la serie.</li>
+    <li>Se muestra el cartón: en azul lo cantado, con borde naranja lo que falta para la figura.</li>
+    <li>La aplicación indica <b>VÁLIDO</b> o <b>NO VÁLIDO</b> y el motivo.</li>
+  </ol>
+  <figure><img src="./manual/img/bingo.jpg" alt="Validación de bingo"><figcaption>Validación por folio: cartón marcado y veredicto.</figcaption></figure>
+  <p class="importante"><b>Regla:</b> un bingo es válido solo si la figura se completó <b>con el último número cantado</b>. Si se completó antes, se informa en qué número y se marca NO VÁLIDO.</p>
+  <p>Si es válido:</p>
+  <ul>
+    <li><b>Registrar ganador</b> (guarda serie, folio, juego y cantidad de números cantados).</li>
+    <li><b>Mostrar en pantalla pública</b>: anuncio grande con serie y folio. <b>Quitar</b> lo oculta.</li>
+    <li><b>Validar otro cartón (empate)</b> o <b>Terminar juego</b>.</li>
+  </ul>
+  <figure><img src="./manual/img/publica-bingo.jpg" alt="Anuncio de bingo en la pantalla pública"><figcaption>Anuncio del ganador en la pantalla pública.</figcaption></figure>
+  <h3>Empates</h3>
+  <p>Se pueden registrar varios ganadores en el mismo juego. Con dos o más, el diálogo muestra la ayuda de <b>Desempate</b>: escriba una bola de desempate (no se registra como número cantado) y la aplicación indica qué cartón empatado la tiene; luego puede anotarlo. La regla de desempate la decide la organización.</p>
+</section>
+
+<section id="terminar">
+  <h2>9. Terminar un juego</h2>
+  <p>El botón <b>Terminar juego</b> (panel derecho, o en el diálogo ¡BINGO! tras registrar un ganador) cierra el juego en curso <b>haya tenido ganador o no</b>. La confirmación indica si tiene ganadores y qué pasará después.</p>
+  <ul>
+    <li>Se pasa al siguiente juego pendiente. Si el evento no acumula números, el tablero empieza vacío.</li>
+    <li>En el <b>último juego</b> el botón también está disponible: al terminarlo se cierra la secuencia, la pantalla pública muestra "¡Gracias por jugar!" y ya no se pueden cantar números.</li>
+    <li>Un juego terminado se puede <b>Reabrir</b> desde "Evento y juegos".</li>
+  </ul>
+  <figure class="chica"><img src="./manual/img/juegos-terminados.jpg" alt="Todos los juegos terminados"><figcaption>Estado al terminar el último juego.</figcaption></figure>
+</section>
+
+<section id="figuras">
+  <h2>10. Figuras</h2>
+  <p>Hay tres tipos de figura:</p>
+  <ul>
+    <li><b>Máscara fija:</b> celdas concretas del cartón (X, L, T, Marco, Columna B, Cartón lleno…).</li>
+    <li><b>Cualquiera de varias (grupo):</b> gana quien complete cualquiera de las máscaras del grupo. <i>Línea (cualquiera)</i> incluye las 5 filas, las 5 columnas y las 2 diagonales.</li>
+    <li><b>Primeros N números:</b> gana quien marque N números de su cartón; se elige si el FREE cuenta.</li>
+  </ul>
+  <p>El centro (FREE) siempre está marcado. La biblioteca precargada incluye: Primeros 3, Línea (cualquiera), Línea horizontal (cualquiera), Columna (cualquiera), Columna B/I/N/G/O, Diagonal, X, L, L (cualquier orientación), T, Marco y Cartón lleno.</p>
+  <figure><img src="./manual/img/figura-editor.jpg" alt="Editor de figuras"><figcaption>Editor: clic en las celdas para formar una máscara; a la derecha, la vista previa.</figcaption></figure>
+  <ul>
+    <li><b>Nueva figura</b> o <b>Copiar</b> una existente para modificarla. Las precargadas no se editan ni se borran.</li>
+    <li>Las figuras personalizadas se guardan para usarlas en otros eventos. Una figura en uso en algún juego no se puede borrar.</li>
+  </ul>
+</section>
+
+<section id="externos">
+  <h2>11. Cartones externos: ingreso manual</h2>
+  <p>Si se acaban los cartones impresos y se reparten cartones de otro origen (comerciales o de otra aplicación), deben registrarse para poder validarlos por folio. Se guardan con su <b>serie y folio tal como vienen impresos</b>, incluidos los ceros a la izquierda.</p>
+  <p>Pestaña <b>Cartones → Ingreso manual de cartón externo</b>:</p>
+  <ol>
+    <li>Escriba la <b>serie</b>, <kbd>Enter</kbd>, el <b>folio</b>, <kbd>Enter</kbd>.</li>
+    <li>Escriba los 24 números columna por columna (B, I, N, G, O; de arriba hacia abajo). El cursor <b>avanza solo</b> cuando el número ya no admite otro dígito (en la B, tras un "2" avanza; tras un "1" espera). Si no avanza, pulse <kbd>Enter</kbd>.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> o <b>Confirmar y guardar</b>.</li>
+  </ol>
+  <figure><img src="./manual/img/ingreso-manual.jpg" alt="Ingreso manual"><figcaption>Ingreso manual con teclado numérico en pantalla.</figcaption></figure>
+  <ul>
+    <li>En rojo, celdas fuera de rango o repetidas; no se puede guardar hasta corregirlas.</li>
+    <li>Si la serie + folio ya existe en el evento, se avisa y no se guarda.</li>
+    <li>"Mantener la serie" deja la serie escrita para el siguiente cartón y lleva el cursor al folio.</li>
+    <li>Retroceso en una celda vacía vuelve a la anterior; las flechas mueven el cursor.</li>
+  </ul>
+</section>
+
+<section id="ia">
+  <h2>12. Importar cartones con IA</h2>
+  <p>Es la forma rápida de registrar cartones externos: se fotografían y una IA lee serie, folio y números. Puede elegir el proveedor en Ajustes: <b>Anthropic (Claude)</b>, <b>OpenAI (GPT)</b>, <b>Google (Gemini)</b> o un <b>servidor compatible con OpenAI</b> (por ejemplo Ollama o LM Studio, incluso en el mismo equipo). Es el <b>único módulo que usa internet</b> y requiere su propia API key del proveedor elegido (sección 13). Sin configurarlo o sin internet, use el ingreso manual o transcriba mirando la foto.</p>
+  <figure><img src="./manual/img/importar.jpg" alt="Importar con IA"><figcaption>Captura: guía, webcam, archivo o carpeta compartida.</figcaption></figure>
+  <h3>Capturar</h3>
+  <ul>
+    <li><b>Guía:</b> cartón plano, buena luz, sin reflejos, encuadre completo (4 bordes, serie y folio visibles), cámara de frente. Hasta 4 cartones por foto.</li>
+    <li><b>Webcam:</b> Encender cámara → Tomar foto.</li>
+    <li><b>Archivo:</b> arrastre una imagen (JPG, PNG o WEBP) o elíjala.</li>
+    <li><b>Carpeta compartida:</b> las fotos tomadas con el celular que lleguen a la carpeta configurada (por ejemplo sincronizada con OneDrive o Google Drive) aparecen en la lista; pulse "Usar".</li>
+    <li>Si sabe cuántos cartones hay en la foto, indíquelo: mejora la lectura.</li>
+  </ul>
+  <p>La primera vez que envíe una foto, la aplicación muestra un <b>aviso de privacidad</b>: indica a qué proveedor se enviará la foto. Debe aceptarlo para continuar; si no lo acepta, puede transcribir el cartón a mano. El consentimiento se da por separado para cada proveedor y se puede retirar en Ajustes.</p>
+  <h3>Revisar y confirmar (obligatorio)</h3>
+  <p>Se muestran la foto y los cartones reconstruidos lado a lado. <b>Nada se guarda sin su confirmación.</b></p>
+  <figure><img src="./manual/img/revision-ia.jpg" alt="Revisión de la lectura"><figcaption>Revisión: foto con zoom a la izquierda; cartones leídos y editables a la derecha.</figcaption></figure>
+  <ul>
+    <li>En <b>amarillo</b>, celdas dudosas; en <b>rojo</b>, inválidas. Un cartón con problemas aparece como <b>DUDOSO</b> y con los motivos.</li>
+    <li>Corrija lo necesario, marque <b>"Comparé este cartón con la foto, celda por celda"</b> y pulse <b>Confirmar y guardar</b>.</li>
+    <li><b>Doble lectura</b> (opcional, en Ajustes): se hacen dos lecturas independientes y las diferencias se marcan en amarillo. Duplica el costo por foto.</li>
+    <li>Si la serie + folio ya existe, se avisa y no se guarda.</li>
+    <li>La foto se guarda junto al cartón para consulta posterior.</li>
+  </ul>
+  <p class="nota"><b>Privacidad:</b> la foto se envía solo al proveedor de IA elegido para su lectura. El resto de la aplicación no envía datos a internet. Detalle en la política de privacidad (menú Ayuda → Política de privacidad; contacto: contacto@saedo.cl).</p>
+</section>
+
+<section id="ajustes">
+  <h2>13. Ajustes</h2>
+  <figure><img src="./manual/img/ajustes.jpg" alt="Ajustes"><figcaption>Ajustes de la importación con IA y carpeta compartida.</figcaption></figure>
+  <ul>
+    <li><b>Proveedor de IA:</b> Anthropic (Claude), OpenAI (GPT), Google (Gemini) o servidor compatible con OpenAI. Cada proveedor guarda su propia clave, modelo y consentimiento; puede cambiar de proveedor cuando quiera.</li>
+    <li><b>API key:</b> se guarda cifrada con el sistema de Windows y nunca se muestra. "Borrar API key" elimina la del proveedor elegido. En un servidor compatible es opcional.</li>
+    <li><b>URL del servidor</b> (solo servidor compatible): por ejemplo <code>http://localhost:11434/v1</code> para Ollama.</li>
+    <li><b>Modelo:</b> pulse <b>Listar modelos</b> para ver los modelos que su clave permite y elija uno que acepte imágenes. Para Claude, por defecto <code>claude-opus-5-5</code>; para los demás proveedores debe elegirlo usted (consulte la documentación del proveedor).</li>
+    <li><b>Doble lectura:</b> ver sección 12.</li>
+    <li><b>Carpeta compartida:</b> carpeta que se vigila para las fotos del celular.</li>
+  </ul>
+</section>
+
+<section id="datos">
+  <h2>14. Datos, guardado y respaldo</h2>
+  <ul>
+    <li>Todo se guarda automáticamente tras cada acción; no existe un botón "Guardar".</li>
+    <li>Si la aplicación se cierra o el equipo se apaga, al reabrir aparece "Sesión recuperada" con el evento y los números donde quedaron.</li>
+    <li>Los datos están en <code>%APPDATA%\BingoMaster\bingomaster.db</code> y las fotos en la carpeta <code>imagenes</code> junto a ella. La ruta exacta se muestra al pie del panel del operador y en Ajustes.</li>
+    <li><b>Respaldar:</b> Ajustes → <b>Respaldar base de datos…</b> genera un archivo <code>.db</code> con eventos, cartones, juegos, ganadores y figuras (no incluye las fotos de cartones importados). Guárdelo en un pendrive o en la nube.</li>
+    <li><b>Restaurar:</b> Ajustes → <b>Restaurar respaldo…</b> reemplaza los datos actuales por los del respaldo. Antes se guarda automáticamente una copia de los datos actuales junto a la base de datos.</li>
+    <li>Con el <b>instalador .exe</b>, desinstalar no borra los datos. Si la aplicación se instaló desde <b>Microsoft Store</b>, Windows <b>sí borra sus datos al desinstalarla</b>: haga un respaldo antes.</li>
+    <li>La API key no viaja en el respaldo a otro equipo (está cifrada para el equipo original): vuelva a ingresarla en Ajustes.</li>
+  </ul>
+</section>
+
+<section id="atajos">
+  <h2>15. Atajos de teclado</h2>
+  <table>
+    <thead><tr><th>Tecla</th><th>Dónde</th><th>Acción</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Enter</kbd></td><td>Juego</td><td>Cantar el número escrito</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Juego</td><td>Borrar lo escrito / cerrar diálogos</td></tr>
+      <tr><td><kbd>−</kbd> (campo vacío) o <kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Juego</td><td>Deshacer el último número (con confirmación)</td></tr>
+      <tr><td><kbd>F2</kbd> o <kbd>*</kbd></td><td>Juego</td><td>Abrir ¡BINGO!</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Ingreso manual</td><td>Guardar el cartón</td></tr>
+      <tr><td><kbd>Enter</kbd> / <kbd>Tab</kbd> / flechas</td><td>Editor de cartón</td><td>Avanzar / moverse entre celdas</td></tr>
+      <tr><td><kbd>F1</kbd></td><td>Cualquier pestaña</td><td>Abrir este manual</td></tr>
+      <tr><td><kbd>F11</kbd></td><td>Ventana del operador</td><td>Pantalla completa</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="reglas">
+  <h2>16. Reglas de validación</h2>
+  <ul>
+    <li>Cartón americano 5×5: B 1–15, I 16–30, N 31–45, G 46–60, O 61–75. Centro = FREE, siempre marcado.</li>
+    <li>La letra de cada número se deriva de su rango. Un número se canta una sola vez (dentro de los números vigentes).</li>
+    <li>Identidad de un cartón = <b>serie + folio</b>; no puede repetirse en el evento.</li>
+    <li>Marcados = números del cartón que fueron cantados + FREE. Se usa <b>solo lo cantado en la aplicación</b>, nunca lo marcado a lápiz en el cartón físico. Igual para propios y externos.</li>
+    <li>Un bingo es <b>válido solo si la figura se completó con el último número cantado</b>.</li>
+    <li>Con números acumulados, un cartón que ya tenía la figura al empezar el juego queda NO VÁLIDO (no la completó con el último número).</li>
+  </ul>
+</section>
+
+<section id="problemas">
+  <h2>17. Problemas frecuentes</h2>
+  <dl>
+    <dt>No veo la opción de terminar el juego / no hay juegos.</dt>
+    <dd>El evento no tiene secuencia de juegos (pasa con eventos creados en versiones anteriores). Pulse <b>Cargar secuencia inicial</b> en el panel de juego o en "Evento y juegos".</dd>
+    <dt>No puedo escribir números.</dt>
+    <dd>Todos los juegos del evento terminaron. Reabra un juego o agregue uno en "Evento y juegos".</dd>
+    <dt>La pantalla pública se abre en el notebook y no en el proyector.</dt>
+    <dd>Verifique que Windows detecte el proyector en modo <b>Extender</b> (<kbd>Win</kbd>+<kbd>P</kbd>), elija el proyector en el selector y pulse "Mover pública".</dd>
+    <dt>"No existe un cartón con folio…"</dt>
+    <dd>Revise el folio y si el cartón fue registrado en el evento activo. Los externos deben ingresarse antes de validarlos.</dd>
+    <dt>"No se puede deshacer: es de un juego anterior".</dt>
+    <dd>Solo se deshacen números del juego en curso, para no alterar ganadores ya registrados.</dd>
+    <dt>La importación con IA falla.</dt>
+    <dd>Revise la conexión a internet y la API key en Ajustes. Mientras tanto use "Transcribir a mano con la foto al lado" o el ingreso manual.</dd>
+    <dt>SmartScreen bloquea el instalador .exe.</dt>
+    <dd>Pulse "Más información → Ejecutar de todas formas" (el instalador no está firmado), o instale la versión de Microsoft Store.</dd>
+    <dt>¿Cómo actualizo la aplicación?</dt>
+    <dd>La versión de Microsoft Store se actualiza sola. Para forzarlo: Microsoft Store → Biblioteca → Obtener actualizaciones.</dd>
+    <dt>¿Dónde dejo mi opinión o pido ayuda?</dt>
+    <dd>Menú Ayuda → "Calificar Bingo Master en Microsoft Store" o "Escribir a soporte" (contacto@saedo.cl).</dd>
+  </dl>
+</section>
+
+<footer class="pie">BingoMaster — manual de usuario. Este manual se incluye con la aplicación y funciona sin internet.</footer>
+</main>
+<script type="module" src="./manual/manual.ts"></script>
+</body>
+</html>

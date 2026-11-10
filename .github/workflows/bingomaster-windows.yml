@@ -1,0 +1,76 @@
+name: BingoMaster (Windows)
+
+on:
+  push:
+    paths:
+      - 'bingomaster/**'
+      - '.github/workflows/bingomaster-windows.yml'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: bingomaster
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bingomaster/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Pruebas unitarias
+        run: npm test
+
+      - name: Compilar y empaquetar instalador NSIS
+        run: npx electron-vite build && npx electron-builder --win nsis --x64 --publish never
+
+      - name: Prueba de humo del ejecutable empaquetado (node:sqlite dentro del .exe)
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'smoke.txt'
+          $env:BINGOMASTER_SMOKE_OUT = $out
+          $p = Start-Process -FilePath 'dist\win-unpacked\BingoMaster.exe' -ArgumentList '--smoke-test' -Wait -PassThru
+          Get-Content $out
+          if ($p.ExitCode -ne 0) { throw "Prueba de humo falló (código $($p.ExitCode))" }
+          if (-not (Select-String -Path $out -Pattern 'SMOKE_OK' -Quiet)) { throw 'Sin SMOKE_OK' }
+
+      - name: Empaquetar para Microsoft Store (AppX, sin firmar; la Store lo firma)
+        run: npx electron-builder --win appx --x64 --publish never
+
+      - name: Mostrar manifiesto del paquete de la Store
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $appx = Get-ChildItem dist\*.appx | Select-Object -First 1
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($appx.FullName)
+          $entry = $zip.Entries | Where-Object { $_.FullName -eq 'AppxManifest.xml' }
+          $reader = New-Object System.IO.StreamReader($entry.Open())
+          $xml = $reader.ReadToEnd(); $reader.Close(); $zip.Dispose()
+          Write-Output "=== $($appx.Name) ($([math]::Round($appx.Length/1MB,1)) MB) ==="
+          Write-Output $xml
+          if ($xml -notmatch 'Name="SergioAedoMena.BingoMaster"') { throw 'Identity Name incorrecto' }
+          if ($xml -notmatch 'Publisher="CN=02EABAB7-6695-4B42-A511-7B74203DB00A"') { throw 'Publisher incorrecto' }
+
+      - name: Publicar paquete de la Store como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: BingoMaster-Store
+          path: bingomaster/dist/*.appx
+          if-no-files-found: error
+
+      - name: Publicar instalador como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: BingoMaster-Setup
+          path: bingomaster/dist/*.exe
+          if-no-files-found: error
