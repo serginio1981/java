@@ -1,17 +1,30 @@
-# BingoMaster
+# BingoMaster (Bingo Master)
 
 Aplicación de escritorio para Windows para conducir bingos presenciales: panel del
-operador en el notebook y pantalla pública en el proyector. 100% offline, salvo la
-importación de cartones con IA.
+operador en el notebook y pantalla pública en el proyector. Funciona sin internet, salvo
+la lectura opcional de cartones con IA.
 
 ## Estado
 
-**Publicada en Microsoft Store** (versión 0.2.0): https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS —
-ID `9NJNBTJDGTZ3`. Versión en desarrollo: **0.3.1** (proveedor de IA elegible, eliminar eventos). Enlaces públicos
-centralizados en `src/shared/links.ts`.
+| | |
+|---|---|
+| **Publicada en Microsoft Store** | Versión **0.2.0** — https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS (ID `9NJNBTJDGTZ3`) |
+| **Versión actual del código** | **0.3.1**, lista para enviar a la Store (paquete `BingoMaster-Store-0.3.1.appx`) |
+| **Sitio web** | https://bingomaster.net/ (fuente en [`website/`](website/LEEME.md)) |
+| **Política de privacidad** | https://bingomaster.net/privacidad.html (fuente [`PRIVACIDAD.md`](PRIVACIDAD.md), versión 1.1) |
+| **Soporte** | contacto@saedo.cl |
 
-Las 5 fases están implementadas y probadas en Linux (pruebas unitarias + prueba de punta a
-punta en Electron) y empaquetadas para Windows en GitHub Actions.
+Los enlaces públicos están centralizados en `src/shared/links.ts`.
+
+### Historial de versiones
+
+| Versión | Cambios |
+|---|---|
+| 0.3.1 | Eliminar eventos con todo su historial (con confirmación escribiendo ELIMINAR). |
+| 0.3.0 | Proveedor de IA elegible (Anthropic Claude, OpenAI GPT, Google Gemini o servidor compatible con OpenAI, como Ollama/LM Studio), cada uno con su clave cifrada, modelo ("Listar modelos") y autorización de privacidad. Menú Ayuda con sitio web, Microsoft Store (ver y calificar) y soporte. |
+| 0.2.0 | Primera versión publicada en Microsoft Store: fases F1–F5, terminar juego con o sin ganador, manual de usuario (F1), respaldo y restauración, consentimiento de IA. |
+
+### Fases implementadas
 
 | Fase | Contenido |
 |---|---|
@@ -21,8 +34,13 @@ punta en Electron) y empaquetadas para Windows en GitHub Actions.
 | F4 | Pantalla pública (figura en juego, "Juego X de Y", overlay ¡BINGO!), recuperación de sesión, instalador NSIS |
 | F5 | Importación de cartones externos con IA de visión, doble lectura, revisión obligatoria |
 
-**No probado:** instalación en Windows real, proyector físico, webcam real y la API de
-Claude real (se probó con un servidor que la simula).
+Probado en Linux (78 pruebas unitarias + prueba de punta a punta en Electron real) y
+empaquetado y con prueba de humo en Windows en GitHub Actions.
+
+**No probado:** proyector físico, webcam real y las API reales de los proveedores de IA (se
+probaron con un servidor local que simula Anthropic, OpenAI y Gemini). El paquete de la
+Store no se ha pasado por el Windows App Certification Kit localmente; lo valida Microsoft
+al certificar (la 0.2.0 fue certificada y publicada).
 
 ## Manual de usuario
 
@@ -36,17 +54,21 @@ La barra de menú está en español (Archivo, Edición, Ver, Ventana pública, A
 1. **Evento y juegos:** "Nuevo evento" (nombre, fecha, código de serie, si los números se
    acumulan). Se carga una secuencia inicial (Primeros 3 → Línea → X → Cartón lleno) que
    se puede editar: agregar, quitar, reordenar, cambiar figura, elegir el juego en curso.
+   **Activar** cambia de evento; **Eliminar** borra un evento con todo su historial (ver
+   reglas abajo).
 2. **Cartones:** generar N cartones (folios SERIE-0001…; la numeración continúa) y exportar
    PDF. Para reimprimir, indicar el rango de folios.
 3. **Juego:** escribir el número + Enter (teclado numérico). `−` o Ctrl+Z deshace (con
    confirmación). **F2** o `*` abre ¡BINGO!: folio → cartón con lo cantado → VÁLIDO / NO
    VÁLIDO → registrar ganador → mostrar en la pública. **Terminar juego** cierra el juego con o
-   sin ganador. El panel derecho
-   muestra (solo al operador) cuántos cartones completan la figura y cuántos están a 1.
+   sin ganador. El panel derecho muestra (solo al operador) cuántos cartones completan la
+   figura y cuántos están a 1.
 4. **Cartones externos:** pestaña Cartones → "Ingreso manual" (serie, folio y 24 números,
    el cursor avanza solo, Ctrl+Enter guarda) o pestaña "Importar con IA" (webcam, archivo,
    carpeta compartida; revisión obligatoria antes de guardar).
-5. **Ajustes:** API key (cifrada con safeStorage), modelo, doble lectura, carpeta compartida.
+5. **Ajustes:** proveedor de IA (Anthropic, OpenAI, Google Gemini o compatible con OpenAI +
+   URL), clave de API por proveedor (cifrada con safeStorage), modelo con "Listar modelos",
+   doble lectura, carpeta compartida, **Respaldar / Restaurar** la base de datos.
 
 ### Reglas implementadas
 
@@ -61,10 +83,16 @@ La barra de menú está en español (Archivo, Edición, Ver, Ventana pública, A
   ganador o no, y pasa al siguiente pendiente. En el último juego también está disponible: al
   terminarlo se cierra la secuencia (la pública muestra "¡Gracias por jugar!"). Un juego
   terminado se puede reabrir desde "Evento y juegos".
-- Eventos sin juegos (por ejemplo, el "Evento de prueba" creado por la versión F1) muestran el
-  botón "Cargar secuencia inicial".
+- **Eliminar evento:** muestra cuántos juegos, cartones, números y ganadores se borrarán y
+  exige escribir ELIMINAR. Borra todo en una transacción, incluidas las fotos de cartones
+  externos guardadas en la carpeta de imágenes de la app. No se puede deshacer (conviene
+  respaldar antes). Si era el evento activo se activa el más reciente que quede; si no queda
+  ninguno se crea un "Evento de prueba" vacío, porque la app siempre necesita un evento activo.
+- Eventos sin juegos muestran el botón "Cargar secuencia inicial".
 - Deshacer solo afecta números del juego en curso.
 - Identidad del cartón = serie + folio; no se puede repetir en el evento.
+- La IA solo se usa tras aceptar el aviso de privacidad de ese proveedor; las ventanas no
+  tienen red, solo el proceso main llama a la API elegida.
 
 ### Supuestos que conviene confirmar
 
@@ -75,6 +103,10 @@ La barra de menú está en español (Archivo, Edición, Ver, Ventana pública, A
   figura del juego nuevo al empezarlo queda NO VÁLIDO (no se completó con el último número).
 - **Cartones a 1 número / completos** se calcula sobre todos los cartones registrados del
   evento (propios y externos), no solo los vendidos.
+- **Inicio de sesión con ChatGPT/Gemini/Claude en vez de clave de API:** evaluado y no
+  implementado. Anthropic prohíbe usar suscripciones Pro/Max en apps de terceros; el OAuth de
+  Google no usa la suscripción Gemini; "Sign in with ChatGPT" de OpenAI (2026) no está
+  confirmado como abierto a cualquier desarrollador. Se mantiene la clave de API.
 
 ## Desarrollo
 
@@ -89,29 +121,41 @@ npm run typecheck  # tipos
 npm run build && npm start
 ```
 
-Prueba de punta a punta (Electron real + Playwright, API de Claude simulada; en Linux usar
+Prueba de punta a punta (Electron real + Playwright, APIs de IA simuladas; en Linux usar
 `xvfb-run -a`): `npm run build && node tests/e2e/full.e2e.cjs [carpeta-capturas]`.
 Requiere `playwright` instalado aparte.
 
 ### Microsoft Store
 
-Política de privacidad: fuente [`PRIVACIDAD.md`](PRIVACIDAD.md), publicada en https://bingomaster.net/privacidad.html (sitio en [`website/`](website/LEEME.md); regenerar con `node scripts/build-website.mjs`).
-
 `electron-builder.yml` → sección `appx` con la identidad de Partner Center (Bingo Master,
-`SergioAedoMena.BingoMaster`). La CI genera `BingoMaster-Store-<versión>.appx` (sin firmar: la
-Store lo firma) como artefacto **BingoMaster-Store**; se sube en Partner Center → Envíos →
-Paquetes. Localmente en Windows: `npm run dist:store`. Logos en `build/appx/` e ícono en
-`build/icon.png` (provisionales, generados desde `build/icon.svg`).
+`SergioAedoMena.BingoMaster`, capacidades `runFullTrust`, `internetClient`, `webcam`). La CI
+genera `BingoMaster-Store-<versión>.appx` (sin firmar: la Store lo firma) como artefacto
+**BingoMaster-Store**; se sube en Partner Center → Envíos → Paquetes. Localmente en Windows:
+`npm run dist:store`. Logos en `build/appx/` e ícono en `build/icon.png` (generados desde
+`build/icon.svg`).
+
+Textos, capturas e imágenes de la ficha, y los pasos para publicar una actualización:
+[`store/FICHA_STORE.md`](store/FICHA_STORE.md). Para cada envío nuevo hay que subir
+`version` en `package.json` (la Store exige una versión mayor que la publicada).
 
 Ajustes → **Respaldar / Restaurar** base de datos: necesario porque Windows borra los datos de
 una app de la Store al desinstalarla.
+
+### Sitio web
+
+Estático, en [`website/`](website/LEEME.md). `privacidad.html` se genera desde `PRIVACIDAD.md`
+con `node scripts/build-website.mjs`. Se publica en un bucket de Google Cloud Storage: subir el
+**contenido** de la carpeta (no el zip) a la raíz del bucket y, para ver los cambios de
+inmediato, dejar el HTML con `Cache-Control: no-cache`.
 
 ### Instalador de Windows
 
 `.github/workflows/bingomaster-windows.yml` (raíz del repo) corre en `windows-latest` en
 cada push que toque `bingomaster/`: tipos, pruebas, instalador NSIS, prueba de humo del
-`.exe` empaquetado y publica el instalador como artefacto en la pestaña Actions. No está
-firmado: Windows SmartScreen pedirá "Más información → Ejecutar de todas formas".
+`.exe` empaquetado, paquete AppX con verificación de la identidad del manifiesto, y publica
+los artefactos **BingoMaster-Setup** y **BingoMaster-Store** en la pestaña Actions. El
+instalador NSIS no está firmado: Windows SmartScreen pedirá "Más información → Ejecutar de
+todas formas" (la versión de la Store no tiene ese problema).
 
 ## Decisiones técnicas
 
@@ -130,20 +174,23 @@ firmado: Windows SmartScreen pedirá "Más información → Ejecutar de todas fo
 - **Importación con IA, proveedor elegible** (Ajustes): Anthropic (`@anthropic-ai/sdk`), OpenAI y
   servidores compatibles como Ollama/LM Studio (`openai`) y Google Gemini (`@google/genai`), todos
   desde el proceso main, cada uno con su clave cifrada, modelo ("Listar modelos") y consentimiento.
-  Anthropic:
-  salida estructurada con JSON Schema, `fallbacks: "default"` en modelos que lo aceptan.
-  Modelo por defecto `claude-opus-5-5` (configurable). Las ventanas no tienen red.
+  Salida estructurada con JSON Schema donde el proveedor lo acepta; con servidores compatibles
+  que no lo soportan se reintenta pidiendo JSON por instrucción. Modelo por defecto de
+  Anthropic `claude-opus-5-5` (configurable); para los demás se elige con "Listar modelos".
 - **Permisos:** solo cámara (video) y solo para la ventana del operador.
 - **Datos:** `%APPDATA%\BingoMaster\bingomaster.db` y fotos en `imagenes\`. El desinstalador
-  no los borra.
+  NSIS no los borra; la desinstalación de la versión de la Store sí.
 
 ## Estructura
 
 ```
-src/shared/      bingo (grilla, números), patterns, validation, import-ai, ipc  — puro, probado
+src/shared/      bingo (grilla, números), patterns, validation, import-ai, ipc, links — puro, probado
 src/main/        db, events, games, calls, cards, patterns, winners, printing,
                  import-ai, settings, state, windows, smoke
 src/preload/     puente seguro
-src/renderer/    operator/ (pestañas), public/ (proyector), ui/ (componentes)
+src/renderer/    operator/ (pestañas), public/ (proyector), ui/ (componentes), manual
 tests/           Vitest + e2e/full.e2e.cjs
+store/           ficha de Microsoft Store, capturas e imágenes
+website/         sitio bingomaster.net
+build/           ícono y logos del paquete
 ```
