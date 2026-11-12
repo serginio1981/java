@@ -15,6 +15,7 @@ import { listModels, readCards } from './import-ai/vision';
 import { createPattern, ensureBuiltinPatterns, removePattern, updatePattern } from './patterns/patterns';
 import { renderPdf } from './printing/pdf';
 import { PRIVACY_URL, Settings } from './settings/settings';
+import { DONATE_URL } from '../shared/links';
 import { runSmokeTest } from './smoke';
 import { buildOperatorState, toPublic } from './state/state';
 import { checkClaim, registerWinner, setWinnerNote } from './winners/winners';
@@ -229,6 +230,7 @@ function main(): void {
       return { ok: true, events: info.events, cards: info.cards };
     });
     handle('help:openPrivacy', async () => { await shell.openExternal(PRIVACY_URL); return ok; }, { mutates: false });
+    handle('help:openDonate', async () => { await shell.openExternal(DONATE_URL); return ok; }, { mutates: false });
     handle('help:openManual', (section) => { openManual(section && /^[a-z-]{1,30}$/.test(section) ? section : undefined); return ok; }, { mutates: false });
     handle('public:open', (displayId) => { publicWin.open(displayId); return ok; });
     handle('public:close', () => { publicWin.close(); return ok; });

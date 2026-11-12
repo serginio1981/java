@@ -242,6 +242,7 @@ export interface Commands {
   // Ayuda
   'help:openManual': { args: [string | null]; result: Result };
   'help:openPrivacy': { args: []; result: Result };
+  'help:openDonate': { args: []; result: Result };
   // Ventana pública
   'public:open': { args: [number | null]; result: Result };
   'public:close': { args: []; result: Result };

@@ -104,6 +104,17 @@ async function typeCard(op, series, folio, grid) {
   const errors = [];
   op.on('pageerror', (e) => errors.push('operador: ' + e.message));
 
+  // ---------- Donación (PayPal): solo abre el enlace en el navegador ----------
+  await app.evaluate(({ shell }) => { globalThis.__opened = []; shell.openExternal = async (u) => { globalThis.__opened.push(u); }; });
+  await op.click('.donate-btn');
+  await op.waitForSelector('.modal .donate');
+  await op.screenshot({ path: path.join(SHOTS, '0-donar.png') });
+  await op.click('.modal button:has-text("Donar con PayPal")');
+  await op.waitForSelector('.modal', { state: 'detached' });
+  assert.deepEqual(await app.evaluate(() => globalThis.__opened), ['https://paypal.me/saedocl']);
+  await app.evaluate(({ Menu }) => Menu.getApplicationMenu().items.find((i) => i.label.includes('yuda')).submenu.items.find((x) => x.label.includes('PayPal')).click());
+  assert.deepEqual(await app.evaluate(() => globalThis.__opened), ['https://paypal.me/saedocl', 'https://paypal.me/saedocl']);
+
   // ---------- Manual de usuario y menú ----------
   const menu = await app.evaluate(({ Menu }) => Menu.getApplicationMenu().items.map((i) => i.label.replace('&', '') + ':' + i.submenu.items.map((s) => s.label).join('|')));
   assert.ok(menu.some((m) => m.startsWith('Ayuda:Manual de usuario')), 'menú Ayuda → Manual de usuario: ' + menu.join(' / '));

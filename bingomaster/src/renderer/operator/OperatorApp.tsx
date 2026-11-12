@@ -3,6 +3,7 @@ import type { OperatorState } from '../../shared/ipc/contract';
 import { call, onToast, type Toast } from '../ui/api';
 import { useAppState } from '../ui/useAppState';
 import { CardsView } from './CardsView';
+import { DonateDialog } from './DonateDialog';
 import { EventsView } from './EventsView';
 import { GamePanel } from './GamePanel';
 import { ImportView } from './ImportView';
@@ -23,6 +24,7 @@ export function OperatorApp() {
   const state = useAppState<OperatorState>();
   const [tab, setTab] = useState<Tab>('juego');
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [donate, setDonate] = useState(false);
 
   useEffect(() => onToast((t) => {
     setToasts((x) => [...x.slice(-3), t]);
@@ -46,8 +48,10 @@ export function OperatorApp() {
           ))}
         </nav>
         <PublicControls state={state} />
+        <button className="donate-btn" onClick={() => setDonate(true)} title="Apoyar Bingo Master con una donación voluntaria (PayPal)" aria-label="Apoyar Bingo Master (donar)">♥</button>
         <button className="help-btn" onClick={() => void call('help:openManual', null)} title="Manual de usuario (F1)">? Manual</button>
       </header>
+      {donate && <DonateDialog onClose={() => setDonate(false)} />}
 
       {state.notice && (
         <div className="notice" role="status">

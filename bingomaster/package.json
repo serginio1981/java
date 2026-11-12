@@ -1,7 +1,7 @@
 {
   "name": "bingomaster",
   "productName": "BingoMaster",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Conducción de bingos presenciales: panel del operador, pantalla pública, cartones con folio y validación",
   "author": "Sergio Aedo Mena",
   "private": true,

@@ -12,3 +12,5 @@ export const STORE_PDP_URI = `ms-windows-store://pdp/?productid=${STORE_PRODUCT_
 export const WEBSITE_URL = 'https://bingomaster.net/';
 export const PRIVACY_URL = 'https://bingomaster.net/privacidad.html';
 export const SUPPORT_EMAIL = 'contacto@saedo.cl';
+/** Donaciones voluntarias: se abren en el navegador; la app no procesa pagos. */
+export const DONATE_URL = 'https://paypal.me/saedocl';

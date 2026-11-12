@@ -2,18 +2,18 @@
 
 > **Estado:** la versión **0.2.0** fue certificada y publicada en Microsoft Store
 > (ID de producto `9NJNBTJDGTZ3`, https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS).
-> Este documento corresponde al **envío 2 (versión 0.3.1)**.
+> Este documento corresponde al **envío 2 (versión 0.3.2)**.
 
-## Cómo publicar la actualización 0.3.1
+## Cómo publicar la actualización 0.3.2
 
 1. Partner Center → Aplicaciones y juegos → Bingo Master → **Actualizar** (crea un envío nuevo copiando el anterior).
-2. **Paquetes:** quite `BingoMaster-Store-0.2.0.appx` y suba `BingoMaster-Store-0.3.1.appx` (artefacto
+2. **Paquetes:** quite `BingoMaster-Store-0.2.0.appx` y suba `BingoMaster-Store-0.3.2.appx` (artefacto
    **BingoMaster-Store** de la última compilación de GitHub Actions). La versión del paquete debe ser mayor
-   que la publicada; 0.3.1.0 > 0.2.0.0.
+   que la publicada; 0.3.2.0 > 0.2.0.0.
 3. **Funcionalidades restringidas:** si vuelve a pedir la justificación de `runFullTrust`, use el mismo texto de 464 caracteres del envío anterior.
 4. **Descripciones de Store → Español (España):** reemplace la **Descripción** y las **Características** por las de
    abajo (cambió la parte de IA) y complete **Novedades de esta versión**.
-5. **Propiedades:** sin cambios. La política de privacidad (versión 1.1) ya está en `https://bingomaster.net/privacidad.html`
+5. **Propiedades:** sin cambios. La política de privacidad (versión 1.2) ya está en `https://bingomaster.net/privacidad.html`
    (suba antes el sitio actualizado).
 6. Enviar a la Store.
 
@@ -64,6 +64,8 @@ PENSADO PARA LA NOCHE DEL EVENTO
 
 IMPORTANTE
 Bingo Master es una herramienta para conducir bingos presenciales. No maneja dinero, premios ni apuestas. La lectura de cartones con inteligencia artificial es opcional, es la única función que usa internet y funciona con el proveedor que usted elija: Anthropic (Claude), OpenAI (GPT), Google (Gemini) o un servidor compatible con OpenAI. Requiere su propia clave de API, que se contrata por separado con el proveedor. Sin ella, todas las demás funciones están disponibles.
+
+Bingo Master es gratuito. Si le resulta útil, puede apoyar su desarrollo con una donación voluntaria por PayPal desde el menú Ayuda; la donación es opcional y no desbloquea funciones.
 ```
 
 ---
@@ -71,7 +73,8 @@ Bingo Master es una herramienta para conducir bingos presenciales. No maneja din
 ## Novedades de esta versión
 
 ```
-Versión 0.3.1
+Versión 0.3.2
+- Botón ♥ (Apoyar) y menú Ayuda para donar voluntariamente con PayPal (opcional, no desbloquea funciones).
 - Eliminar eventos con todo su historial (con confirmación).
 - Lectura de cartones con IA: ahora puede elegir el proveedor (Anthropic Claude, OpenAI GPT, Google Gemini o un servidor compatible con OpenAI, como Ollama o LM Studio, incluso en su propio equipo).
 - Cada proveedor guarda su propia clave cifrada, modelo y autorización de privacidad. Botón "Listar modelos" para elegir el modelo.
@@ -227,5 +230,5 @@ Sergio Aedo Mena
 - [ ] Al menos 4 capturas con leyenda.
 - [ ] Palabras clave ingresadas (7).
 - [ ] Política de privacidad publicada en `https://bingomaster.net/privacidad.html` (página Propiedades).
-- [ ] Paquete `BingoMaster-Store-0.3.1.appx` subido en **Paquetes** (y quitado el 0.2.0).
+- [ ] Paquete `BingoMaster-Store-0.3.2.appx` subido en **Paquetes** (y quitado el 0.2.0).
 - [ ] Clasificación por edades completada (cuestionario IARC).

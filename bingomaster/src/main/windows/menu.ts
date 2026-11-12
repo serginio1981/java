@@ -1,5 +1,5 @@
 import { app, dialog, Menu, shell, type BrowserWindow, type MenuItemConstructorOptions } from 'electron';
-import { PRIVACY_URL, STORE_PDP_URI, STORE_REVIEW_URI, STORE_URL, SUPPORT_EMAIL, WEBSITE_URL } from '../../shared/links';
+import { DONATE_URL, PRIVACY_URL, STORE_PDP_URI, STORE_REVIEW_URI, STORE_URL, SUPPORT_EMAIL, WEBSITE_URL } from '../../shared/links';
 import { openManual } from './windows';
 
 /**
@@ -57,6 +57,7 @@ export function buildMenu(opts: {
         { label: 'Sitio web de Bingo Master', click: () => void shell.openExternal(WEBSITE_URL) },
         { label: 'Ver en Microsoft Store', click: () => void shell.openExternal(STORE_PDP_URI).catch(() => shell.openExternal(STORE_URL)) },
         { label: 'Calificar Bingo Master en Microsoft Store', click: () => void shell.openExternal(STORE_REVIEW_URI).catch(() => shell.openExternal(STORE_URL)) },
+        { label: 'Apoyar Bingo Master (donar con PayPal)', click: () => void shell.openExternal(DONATE_URL) },
         { label: 'Escribir a soporte', click: () => void shell.openExternal(`mailto:${SUPPORT_EMAIL}?subject=Bingo%20Master%20${app.getVersion()}`) },
         { type: 'separator' },
         {
@@ -67,7 +68,7 @@ export function buildMenu(opts: {
               type: 'info' as const,
               title: 'Acerca de BingoMaster',
               message: `BingoMaster ${app.getVersion()}`,
-              detail: `Conducción de bingos presenciales.\n© 2026 Sergio Aedo Mena · ${WEBSITE_URL}\nSoporte: ${SUPPORT_EMAIL}\n\nElectron ${process.versions.electron} · Node ${process.versions.node}\nDatos: ${app.getPath('userData')}`,
+              detail: `Conducción de bingos presenciales.\n© 2026 Sergio Aedo Mena · ${WEBSITE_URL}\nSoporte: ${SUPPORT_EMAIL}\nApoye el proyecto: ${DONATE_URL}\n\nElectron ${process.versions.electron} · Node ${process.versions.node}\nDatos: ${app.getPath('userData')}`,
               buttons: ['Cerrar'],
             };
             void (win ? dialog.showMessageBox(win, info) : dialog.showMessageBox(info));

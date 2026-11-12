@@ -9,9 +9,10 @@ la lectura opcional de cartones con IA.
 | | |
 |---|---|
 | **Publicada en Microsoft Store** | Versión **0.2.0** — https://apps.microsoft.com/store/detail/9NJNBTJDGTZ3?cid=DevShareMCLPCS (ID `9NJNBTJDGTZ3`) |
-| **Versión actual del código** | **0.3.1**, lista para enviar a la Store (paquete `BingoMaster-Store-0.3.1.appx`) |
+| **Versión actual del código** | **0.3.2**, lista para enviar a la Store (paquete `BingoMaster-Store-0.3.2.appx`) |
 | **Sitio web** | https://bingomaster.net/ (fuente en [`website/`](website/LEEME.md)) |
-| **Política de privacidad** | https://bingomaster.net/privacidad.html (fuente [`PRIVACIDAD.md`](PRIVACIDAD.md), versión 1.1) |
+| **Política de privacidad** | https://bingomaster.net/privacidad.html (fuente [`PRIVACIDAD.md`](PRIVACIDAD.md), versión 1.2) |
+| **Donaciones** | https://paypal.me/saedocl (botón ♥ de la barra superior, menú Ayuda y sitio web) |
 | **Soporte** | contacto@saedo.cl |
 
 Los enlaces públicos están centralizados en `src/shared/links.ts`.
@@ -20,6 +21,7 @@ Los enlaces públicos están centralizados en `src/shared/links.ts`.
 
 | Versión | Cambios |
 |---|---|
+| 0.3.2 | Donaciones voluntarias con PayPal: botón "♥" en la barra superior (diálogo explicativo) y menú Ayuda → "Apoyar Bingo Master (donar con PayPal)"; enlace en el sitio web; política de privacidad 1.2. |
 | 0.3.1 | Eliminar eventos con todo su historial (con confirmación escribiendo ELIMINAR). |
 | 0.3.0 | Proveedor de IA elegible (Anthropic Claude, OpenAI GPT, Google Gemini o servidor compatible con OpenAI, como Ollama/LM Studio), cada uno con su clave cifrada, modelo ("Listar modelos") y autorización de privacidad. Menú Ayuda con sitio web, Microsoft Store (ver y calificar) y soporte. |
 | 0.2.0 | Primera versión publicada en Microsoft Store: fases F1–F5, terminar juego con o sin ganador, manual de usuario (F1), respaldo y restauración, consentimiento de IA. |
@@ -91,6 +93,9 @@ La barra de menú está en español (Archivo, Edición, Ver, Ventana pública, A
 - Eventos sin juegos muestran el botón "Cargar secuencia inicial".
 - Deshacer solo afecta números del juego en curso.
 - Identidad del cartón = serie + folio; no se puede repetir en el evento.
+- **Donaciones:** solo abren `https://paypal.me/saedocl` en el navegador (`DONATE_URL` en
+  `src/shared/links.ts`). La app no procesa pagos, no envía datos a PayPal y la donación no
+  desbloquea funciones.
 - La IA solo se usa tras aceptar el aviso de privacidad de ese proveedor; las ventanas no
   tienen red, solo el proceso main llama a la API elegida.
 

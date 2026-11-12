@@ -1,7 +1,7 @@
 # Política de Privacidad — Bingo Master
 
-**Versión:** 1.1
-**Fecha de entrada en vigor:** 7 de noviembre de 2026
+**Versión:** 1.2
+**Fecha de entrada en vigor:** 12 de noviembre de 2026
 **Aplicación:** Bingo Master para Windows (distribuida a través de Microsoft Store y mediante instalador)
 
 ---
@@ -24,8 +24,8 @@ La presente Política de Privacidad (la "**Política**") informa de manera clara
 5. Qué controles y derechos tienen los usuarios y cómo pueden ejercerlos.
 
 Esta Política se aplica exclusivamente a la Aplicación. No se aplica a servicios de terceros
-(como Microsoft Store, Windows o el proveedor de inteligencia artificial), que se rigen por sus
-propias políticas, indicadas en esta Política.
+(como Microsoft Store, Windows, el proveedor de inteligencia artificial o PayPal), que se rigen por
+sus propias políticas, indicadas en esta Política.
 
 ## 3. Definiciones
 
@@ -166,7 +166,14 @@ Los únicos terceros que pueden recibir datos son:
    configuración de diagnóstico de Windows del usuario. Microsoft puede poner a disposición del
    Desarrollador **informes agregados**, por ejemplo número de instalaciones o informes de fallos
    de la Aplicación, que no identifican directamente a los usuarios.
-3. **Servicios de copia de seguridad** que el propio usuario tenga activados (por ejemplo, copias
+3. **PayPal**, solo si el usuario decide hacer una donación voluntaria: el botón "♥" (Apoyar) y
+   el menú Ayuda abren `https://paypal.me/saedocl` en el navegador del usuario. La Aplicación no
+   envía datos a PayPal, no procesa pagos y no recibe ni guarda datos de pago; lo que el usuario
+   ingrese en PayPal se rige por la Declaración de privacidad de PayPal, publicada en paypal.com.
+   El Desarrollador, como receptor de la donación, recibe de PayPal los datos que PayPal informa
+   a todo destinatario de un pago (por ejemplo, nombre y correo del donante) y los usa solo para
+   la gestión de la donación y sus obligaciones legales y tributarias.
+4. **Servicios de copia de seguridad** que el propio usuario tenga activados (por ejemplo, copias
    de Windows en OneDrive), que pueden incluir los datos de la Aplicación según la configuración
    del usuario.
 

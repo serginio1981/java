@@ -224,3 +224,8 @@ button.danger.solid { background: var(--err); color: #fff; border-color: var(--e
 button.danger.solid:disabled { opacity: .45; }
 .del-summary { margin: 0 0 4px 18px; padding: 0; }
 p.warn { color: var(--err); margin: 4px 0; }
+
+/* Donación voluntaria */
+.donate-btn { color: #c0392b; font-size: 18px; line-height: 1; padding: 6px 10px; }
+.donate ul { margin: 0 0 4px 18px; padding: 0; }
+.donate li { margin: 3px 0; }
