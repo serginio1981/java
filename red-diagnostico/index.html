@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: consola de diagnóstico — barra de pestañas fija arriba, contenido en una columna ancha que se divide en dos en iPad horizontal */
+/* Layout: consola de diagnóstico — en iPad, menú lateral con grupos y submenús; en pantallas angostas, pestañas de grupo arriba y submenú en píldoras */
 :root{
   --bg:#eef1f4; --surface:#ffffff; --sunken:#e3e8ee; --line:#cfd7e0;
   --fg:#16212c; --muted:#5b6b7b; --accent:#0a6c93; --accent-ink:#ffffff; --accent-soft:#d6ebf3;
@@ -30,31 +30,73 @@ body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.2}
-h1{font-size:1.6rem;font-weight:700}
-h2{font-size:1.3rem;font-weight:600}
+h1{font-size:1.35rem;font-weight:700}
+h2{font-size:1.5rem;font-weight:600}
 h3{font-size:1.05rem;font-weight:600}
 p{margin:0}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-header.top{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;padding-top:18px}
+a{color:var(--accent)}
 .eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .muted{color:var(--muted)}
 .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
-nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;
-  border-bottom:1px solid var(--line);padding-block:8px 0;scrollbar-width:none}
-nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-weight:600;padding:10px 14px;border-radius:8px 8px 0 0;border-bottom:3px solid transparent;font-size:.95rem}
-nav.tabs a[aria-current="page"]{color:var(--fg);border-bottom-color:var(--accent)}
-nav.tabs a:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-section.view{display:flex;flex-direction:column;gap:20px}
-.grid2{display:grid;grid-template-columns:1fr;gap:20px}
-@media (min-width:900px){.grid2{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+
+/* ---------- Shell ---------- */
+.shell{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:0 28px}
+@media (min-width:900px){.shell{grid-template-columns:250px minmax(0,1fr)}}
+.brand{display:flex;flex-direction:column;gap:2px;padding-block:18px 10px}
+.engine{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+.dot.on{background:var(--good)}
+
+/* sidebar (iPad / escritorio) */
+aside.side{display:none}
+@media (min-width:900px){
+  aside.side{display:flex;flex-direction:column;gap:18px;position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:24px}
+}
+#sideNav{display:flex;flex-direction:column;gap:18px}
+.ngroup{display:flex;flex-direction:column;gap:2px}
+.ngroup h4{margin:0 0 4px;padding-left:12px;font-family:var(--font-mono);font-weight:500;font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.ngroup a{display:flex;align-items:center;justify-content:space-between;gap:8px;text-decoration:none;color:var(--fg);padding:9px 12px;border-radius:8px;font-weight:500;min-height:42px}
+.ngroup a:hover{background:var(--sunken)}
+.ngroup a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.badge{font-family:var(--font-mono);font-size:.7rem;padding:2px 7px;border-radius:999px;background:var(--sunken);color:var(--muted);white-space:nowrap;font-weight:500}
+.badge.ok{background:var(--good-soft);color:var(--good)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.crit{background:var(--crit-soft);color:var(--crit)}
+
+/* navegación móvil: grupo + submenú */
+.mnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;flex-direction:column;gap:6px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.gtabs,.subtabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.gtabs a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:3px solid transparent;font-size:.95rem}
+.gtabs a[aria-current="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.subtabs a{flex:0 0 auto;text-decoration:none;color:var(--fg);font-weight:500;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.88rem;display:inline-flex;gap:6px;align-items:center}
+.subtabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.subtabs a[aria-current="page"] .badge{background:transparent;color:inherit}
+
+@media (min-width:900px){.mnav{display:none!important}}
+a:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* contenido */
+main{display:flex;flex-direction:column;gap:18px;min-width:0;padding-top:18px}
+.vhead{display:flex;flex-direction:column;gap:4px}
+.crumb{font-size:.82rem;color:var(--muted)}
+.crumb b{color:var(--fg);font-weight:500}
+section.view{display:flex;flex-direction:column;gap:18px}
+.pager{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:16px;margin-top:6px}
+.pager a{text-decoration:none;display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);min-width:0;flex:1 1 200px;max-width:340px}
+.pager a.next{margin-left:auto;text-align:right}
+.pager a small{color:var(--muted);font-size:.75rem;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em}
+.pager a span{font-weight:600}
+
+.grid2{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:1100px){.grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .panel.flat{background:transparent;border:none;padding:0}
-button,.btn{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;min-height:42px}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button,.btn{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;min-height:42px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button:disabled{opacity:.5;cursor:default}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 select,textarea,input[type=text]{font:inherit;color:var(--fg);background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
-textarea{font-family:var(--font-mono);font-size:.82rem;line-height:1.45;min-height:220px;resize:vertical}
+textarea{font-family:var(--font-mono);font-size:.82rem;line-height:1.45;min-height:280px;resize:vertical}
 label.q{display:flex;flex-direction:column;gap:6px;font-weight:500}
 label.q small{font-weight:400;color:var(--muted)}
 .qgrid{display:grid;grid-template-columns:1fr;gap:14px}
@@ -65,6 +107,21 @@ label.q small{font-weight:400;color:var(--muted)}
 .chip.baja{background:var(--good-soft);color:var(--good)}
 .chip.info{background:var(--accent-soft);color:var(--accent)}
 .note{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.progress{height:6px;background:var(--sunken);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:3px}
+
+/* panel */
+.dash{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:1100px){.dash{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}}
+.hero{border-left:4px solid var(--crit)}
+.hero.media{border-left-color:var(--warn)}.hero.baja{border-left-color:var(--good)}
+ul.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ul.steps li a{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg)}
+ul.steps li:last-child a{border-bottom:none}
+.tick{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--accent-ink)}
+.tick.done{background:var(--good);border-color:var(--good)}
+.tick.part{border-color:var(--warn)}
+.nextstep{background:var(--accent-soft);border-color:transparent}
 
 /* topology */
 .topo{width:100%;height:auto;display:block}
@@ -78,8 +135,6 @@ label.q small{font-weight:400;color:var(--muted)}
 .topo .link.wifi{stroke-dasharray:6 6}
 .topo .link.unk{stroke:var(--muted);stroke-dasharray:2 6}
 .topo .ico{fill:var(--accent)}
-
-/* screenshot reading */
 .shot{display:grid;grid-template-columns:1fr;gap:16px}
 @media (min-width:640px){.shot{grid-template-columns:200px minmax(0,1fr)}}
 .shot img{width:100%;max-width:220px;border-radius:12px;border:1px solid var(--line)}
@@ -96,7 +151,7 @@ ol.causes summary::-webkit-details-marker{display:none}
 .meter{grid-column:1/-1;height:6px;background:var(--sunken);border-radius:3px;overflow:hidden}
 .meter i{display:block;height:100%;border-radius:3px}
 .cbody{padding:0 16px 16px;display:grid;grid-template-columns:1fr;gap:12px;font-size:.93rem}
-@media (min-width:700px){.cbody{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:760px){.cbody{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .cbody h4{margin:0 0 4px;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .cbody ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 
@@ -132,226 +187,294 @@ canvas.spark{width:100%;height:160px;display:block;background:var(--sunken);bord
 .turn .who{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .check{display:flex;gap:8px;align-items:flex-start;font-size:.93rem}
 .check input{margin-top:4px;width:18px;height:18px}
-@media (prefers-reduced-motion:no-preference){.meter i{transition:width .4s ease}}
+@media (prefers-reduced-motion:no-preference){.meter i,.progress i{transition:width .4s ease}}
 </style>
 
-<div class="wrap">
-  <header class="top">
-    <div>
-      <div class="eyebrow">Red doméstica · AiMesh · 2 nodos</div>
+<div class="shell">
+  <aside class="side" aria-label="Menú">
+    <div class="brand">
+      <div class="eyebrow">AiMesh · 2 nodos</div>
       <h1>Diagnóstico AiMesh Casa</h1>
+      <div class="engine"><span class="dot" id="aiDot"></span><span class="engineState">Comprobando IA…</span></div>
     </div>
-    <p class="muted" id="engineState">Motor de reglas local activo · IA: comprobando…</p>
-  </header>
+    <nav id="sideNav"></nav>
+  </aside>
 
-  <nav class="tabs" aria-label="Secciones">
-    <a href="#resumen" data-view="resumen">Resumen</a>
-    <a href="#preguntas" data-view="preguntas">Cuestionario</a>
-    <a href="#registro" data-view="registro">Registro del router</a>
-    <a href="#monitor" data-view="monitor">Monitor en vivo</a>
-    <a href="#ia" data-view="ia">Análisis con IA</a>
-  </nav>
+  <div style="min-width:0">
+    <div class="mnav">
+      <div class="brand" style="padding-block:14px 0">
+        <h1>Diagnóstico AiMesh Casa</h1>
+        <div class="engine"><span class="dot" id="aiDot2"></span><span class="engineState">Comprobando IA…</span></div>
+      </div>
+      <nav class="gtabs" id="gTabs" aria-label="Secciones"></nav>
+      <nav class="subtabs" id="subTabs" aria-label="Subsecciones"></nav>
+    </div>
 
-  <!-- RESUMEN -->
-  <section class="view" id="v-resumen">
-    <div class="grid2">
-      <div class="panel">
+    <main>
+      <header class="vhead">
+        <div class="crumb" id="crumb"></div>
+        <h2 id="vTitle"></h2>
+        <p class="muted" id="vLead"></p>
+      </header>
+
+      <!-- DIAGNÓSTICO › PANEL -->
+      <section class="view" id="v-resumen">
+        <div class="dash">
+          <div class="panel hero" id="heroCard"></div>
+          <div class="panel nextstep" id="nextCard"></div>
+        </div>
+        <div class="dash">
+          <div class="panel">
+            <div class="row" style="justify-content:space-between"><h3>Datos reunidos</h3><span class="badge" id="progBadge"></span></div>
+            <div class="progress"><i id="progBar"></i></div>
+            <ul class="steps" id="steps"></ul>
+          </div>
+          <div class="panel">
+            <div class="row" style="justify-content:space-between"><h3>Topología</h3><a href="#topologia">Ver detalle</a></div>
+            <svg class="topo" id="topoMini" viewBox="0 0 520 300" role="img" aria-label="Topología resumida"></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIAGNÓSTICO › CAUSAS -->
+      <section class="view" id="v-causas" hidden>
         <div class="row" style="justify-content:space-between">
-          <h2>Topología</h2>
-          <span class="chip info" id="bhChip">Backhaul: sin confirmar</span>
+          <span class="muted" id="basis"></span>
         </div>
-        <svg class="topo" id="topo" viewBox="0 0 520 300" role="img" aria-label="Internet conectado al RT-BE50, que conecta al nodo RT-AX82U"></svg>
-        <p class="note">Línea continua = backhaul por cable · discontinua = inalámbrico · punteada = sin confirmar. Cámbialo en el Cuestionario.</p>
-      </div>
+        <p class="note">Índice de sospecha calculado por reglas en tu iPad, sin conexión. No es una probabilidad: sube o baja según tus respuestas y el registro. Toca una causa para ver cómo comprobarla.</p>
+        <ol class="causes" id="causes"></ol>
+      </section>
 
-      <div class="panel">
-        <h2>Lo que dice tu captura</h2>
-        <div class="shot">
-          <img src="captura-asus.jpg" alt="Captura de la app ASUS Router a las 01:53" id="shotImg" onerror="this.hidden=true">
-          <dl class="read">
-            <div><dt>Estado: «Conectándose…»</dt><dd>Probablemente es la app estableciendo sesión con el router, no un estado del enlace a Internet. No estoy seguro de cómo lo etiqueta cada versión de la app: confírmalo abriendo la pestaña Estado cuando termine de cargar.</dd></div>
-            <div><dt>0 clientes en ambos nodos</dt><dd>Tu propio teléfono estaba conectado por Wi-Fi, así que al menos debería verse 1 cliente. Esto apunta a que la app aún no había leído los datos, no a que la red estuviera vacía.</dd></div>
-            <div><dt>Enlace verde BE50 → AX82U</dt><dd>El nodo aparece unido a la malla. La captura no deja claro si el backhaul es por cable o inalámbrico: es el dato más importante para seguir.</dd></div>
-            <div><dt>Dos SSID separados</dt><dd>«SERGIO ROOM» y «SERGIO ROOM_5G»: Smart Connect está apagado y los equipos no cambian de banda solos.</dd></div>
-          </dl>
+      <!-- DIAGNÓSTICO › TOPOLOGÍA -->
+      <section class="view" id="v-topologia" hidden>
+        <div class="grid2">
+          <div class="panel">
+            <div class="row" style="justify-content:space-between">
+              <h3>Esquema</h3>
+              <span class="chip info" id="bhChip">Backhaul: sin confirmar</span>
+            </div>
+            <svg class="topo" id="topo" viewBox="0 0 520 300" role="img" aria-label="Internet conectado al RT-BE50, que conecta al nodo RT-AX82U"></svg>
+            <p class="note">Línea continua = backhaul por cable · discontinua = inalámbrico · punteada = sin confirmar. Se cambia en <a href="#red">Configuración de red</a>.</p>
+          </div>
+          <div class="panel">
+            <h3>Lo que dice tu captura</h3>
+            <div class="shot">
+              <img src="captura-asus.jpg" alt="Captura de la app ASUS Router a las 01:53" onerror="this.hidden=true">
+              <dl class="read">
+                <div><dt>Estado: «Conectándose…»</dt><dd>Probablemente es la app estableciendo sesión con el router, no el estado del enlace a Internet. No estoy seguro de cómo lo etiqueta cada versión de la app: confírmalo cuando termine de cargar.</dd></div>
+                <div><dt>0 clientes en ambos nodos</dt><dd>Tu teléfono estaba conectado por Wi-Fi, así que debería verse al menos 1 cliente. Apunta a que la app aún no había leído los datos.</dd></div>
+                <div><dt>Enlace verde BE50 → AX82U</dt><dd>El nodo aparece unido a la malla. La captura no deja claro si el backhaul es por cable o inalámbrico.</dd></div>
+                <div><dt>Dos SSID separados</dt><dd>«SERGIO ROOM» y «SERGIO ROOM_5G»: Smart Connect está apagado y los equipos no cambian de banda solos.</dd></div>
+              </dl>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="panel flat">
-      <div class="row" style="justify-content:space-between">
-        <h2>Causas probables, ordenadas</h2>
-        <span class="muted" id="basis">Basado en: cuestionario + registro de ejemplo</span>
-      </div>
-      <p class="note">Índice de sospecha calculado por reglas en tu iPad (sin conexión). No es una probabilidad: sube o baja según tus respuestas y lo que aparezca en el registro. Toca una causa para ver cómo comprobarla.</p>
-      <ol class="causes" id="causes"></ol>
-    </div>
-  </section>
-
-  <!-- PREGUNTAS -->
-  <section class="view" id="v-preguntas" hidden>
-    <div class="panel">
-      <h2>Cuestionario sobre la caída de la tarde</h2>
-      <p class="muted">Cada respuesta ajusta el ranking del Resumen al instante. «No sé» es una respuesta válida: la regla simplemente pesa menos.</p>
-      <form class="qgrid" id="qform"></form>
-    </div>
-    <div class="panel">
-      <h3>Dónde encontrar los datos en el router</h3>
-      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
-        <li>Entra desde Safari a <span class="mono">http://192.168.50.1</span> o <span class="mono">http://www.asusrouter.com</span> (dirección por defecto de ASUS; puede variar si la cambiaste).</li>
-        <li><b>Tipo de backhaul y señal del nodo:</b> página AiMesh → selecciona RT-AX82U. Debería mostrar el tipo de conexión y la calidad.</li>
-        <li><b>Firmware:</b> Administración → Actualización de firmware (aparecen ambos nodos).</li>
-        <li><b>Registro:</b> Registro del sistema → Registro general. Cópialo y pégalo en la pestaña Registro.</li>
-        <li><b>Monitoreo de red:</b> WAN → Conexión a Internet → «Network Monitoring» (DNS Query / Ping).</li>
-      </ul>
-      <p class="note">Los nombres de menú cambian entre versiones de firmware y idioma. Si no encuentras uno, búscalo por la palabra clave.</p>
-    </div>
-  </section>
-
-  <!-- REGISTRO -->
-  <section class="view" id="v-registro" hidden>
-    <div class="grid2">
-      <div class="panel">
-        <div class="row" style="justify-content:space-between">
-          <h2>Registro del sistema</h2>
-          <span class="chip media" id="logBadge">Ejemplo</span>
+      <!-- DATOS › SÍNTOMA -->
+      <section class="view" id="v-sintoma" hidden>
+        <div class="panel">
+          <div class="row" style="justify-content:space-between"><h3>Qué pasó en la tarde</h3><span class="badge" id="qcount-sintoma"></span></div>
+          <form class="qgrid" data-group="sintoma"></form>
         </div>
-        <p class="muted">Pega aquí el «Registro general» del RT-BE50. Se analiza en tu iPad; no sale de aquí salvo que pidas el análisis con IA.</p>
-        <textarea id="logInput" spellcheck="false" aria-label="Registro del router"></textarea>
-        <div class="row">
-          <button class="primary" id="analyzeBtn" type="button">Analizar registro</button>
-          <button id="clearBtn" type="button">Vaciar</button>
-          <label class="btn" style="display:inline-flex;align-items:center">Cargar .txt<input type="file" id="logFile" accept=".txt,.log,text/plain" hidden></label>
-        </div>
-        <p class="note">El texto inicial es un <b>registro inventado de ejemplo</b> para mostrar cómo funciona. Reemplázalo con el tuyo.</p>
-      </div>
-      <div class="panel">
-        <h2>Hallazgos</h2>
-        <svg class="hist" id="hist" viewBox="0 0 480 150" role="img" aria-label="Eventos relevantes por hora"></svg>
-        <div class="findings" id="findings"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <h3>Líneas relevantes</h3>
-      <div class="tablewrap"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Línea</th></tr></thead><tbody id="logRows"></tbody></table></div>
-      <p class="note">Los patrones cubren mensajes comunes de Asuswrt (WAN, enlace físico, DFS, cambios de canal, AiMesh, roaming, reinicios). El texto exacto varía según firmware, así que algo puede quedar sin clasificar.</p>
-    </div>
-  </section>
+      </section>
 
-  <!-- MONITOR -->
-  <section class="view" id="v-monitor" hidden>
-    <div class="panel">
-      <div class="row" style="justify-content:space-between">
-        <h2>Monitor de conexión</h2>
-        <div class="row">
-          <button class="primary" id="pingBtn" type="button">Iniciar</button>
-          <button id="pingReset" type="button">Reiniciar datos</button>
+      <!-- DATOS › RED -->
+      <section class="view" id="v-red" hidden>
+        <div class="panel">
+          <div class="row" style="justify-content:space-between"><h3>Cómo está armada tu red</h3><span class="badge" id="qcount-red"></span></div>
+          <form class="qgrid" data-group="red"></form>
+          <p class="note">¿No sabes dónde mirar algo? Está en <a href="#guia">Ayuda › Dónde está cada dato</a>.</p>
         </div>
-      </div>
-      <p class="muted">Mide cada segundo cuánto tarda tu iPad en recibir un archivo pequeño de este mismo sitio. Incluye Wi-Fi, malla, módem y proveedor. Úsalo caminando: primero junto al RT-BE50, luego junto al RT-AX82U.</p>
-      <div class="stats">
-        <div class="stat"><b id="sAvg">—</b><span>Latencia media (ms)</span></div>
-        <div class="stat"><b id="sJit">—</b><span>Jitter (ms)</span></div>
-        <div class="stat"><b id="sLoss">—</b><span>Pérdida (%)</span></div>
-        <div class="stat"><b id="sN">0</b><span>Muestras</span></div>
-      </div>
-      <canvas class="spark" id="spark" aria-label="Gráfico de latencia"></canvas>
-      <div class="row">
-        <label class="q" style="flex:1;min-width:200px">Ubicación de esta medición
-          <select id="pingLoc"><option>Junto al RT-BE50</option><option>Junto al RT-AX82U</option><option>Punto intermedio</option><option>Lugar donde falló</option></select>
-        </label>
-      </div>
-      <div id="pingSessions" class="findings"></div>
-      <p class="note">Referencia orientativa, no una norma: en Wi-Fi doméstico, picos frecuentes sobre ~150 ms o pérdida sobre ~1 % suelen notarse en videollamadas. La pantalla se mantiene encendida mientras mide, si Safari lo permite.</p>
-    </div>
-  </section>
+      </section>
 
-  <!-- IA -->
-  <section class="view" id="v-ia" hidden>
-    <div class="grid2">
-      <div class="panel">
-        <h2>Pedir análisis a Claude</h2>
-        <p class="muted">Envía el resumen de topología, tus respuestas, los hallazgos del registro y el monitor. Usa tu cuenta de Claude, así que requiere Internet; el resto de la app funciona sin ella.</p>
-        <label class="check"><input type="checkbox" id="incShot" checked> Incluir la captura de la app ASUS</label>
-        <label class="check"><input type="checkbox" id="incLog" checked> Incluir extracto del registro (últimas 150 líneas)</label>
-        <label class="check"><input type="checkbox" id="maskMac" checked> Ocultar direcciones MAC</label>
-        <label class="q">Más capturas (opcional)<small>Por ejemplo, la página AiMesh del nodo o la lista de clientes.</small>
-          <input type="file" id="extraShots" accept="image/*" multiple>
-        </label>
-        <label class="q">Nivel de análisis
-          <select id="tier"><option value="default">Estándar</option><option value="complex">Profundo (tarda más)</option></select>
-        </label>
-        <div class="row">
-          <button class="primary" id="askBtn" type="button">Analizar mi red</button>
-          <button id="stopBtn" type="button" disabled>Detener</button>
+      <!-- DATOS › REGISTRO -->
+      <section class="view" id="v-registro" hidden>
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <h3>Pega el «Registro general» del RT-BE50</h3>
+            <span class="chip media" id="logBadge">Ejemplo</span>
+          </div>
+          <textarea id="logInput" spellcheck="false" aria-label="Registro del router"></textarea>
+          <div class="row">
+            <button class="primary" id="analyzeBtn" type="button">Analizar y ver hallazgos</button>
+            <button id="clearBtn" type="button">Vaciar</button>
+            <label class="btn">Cargar .txt<input type="file" id="logFile" accept=".txt,.log,text/plain" hidden></label>
+          </div>
+          <p class="note">El texto inicial es un <b>registro inventado de ejemplo</b>. Se analiza en tu iPad y no sale de aquí salvo que pidas el análisis con IA.</p>
         </div>
-        <p class="note" id="aiNote">Al primer uso, Claude te pedirá permiso para que esta página lo consulte.</p>
-      </div>
-      <div class="panel flat">
-        <div class="answer" id="answer"><p class="muted">Aquí aparecerá el análisis. Se pedirá a Claude que separe lo que sabe de lo que supone y que no invente menús ni versiones de firmware.</p></div>
-        <form class="row" id="followForm" hidden>
-          <input type="text" id="followInput" placeholder="Pregunta de seguimiento, p. ej. ¿cómo activo el backhaul Ethernet?" style="flex:1;min-width:200px">
-          <button class="primary" type="submit" id="followBtn">Enviar</button>
-        </form>
-      </div>
-    </div>
-  </section>
+      </section>
+
+      <!-- DATOS › HALLAZGOS -->
+      <section class="view" id="v-hallazgos" hidden>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Eventos por hora</h3>
+            <svg class="hist" id="hist" viewBox="0 0 480 150" role="img" aria-label="Eventos relevantes por hora"></svg>
+            <div class="findings" id="findings"></div>
+          </div>
+          <div class="panel">
+            <h3>Líneas relevantes</h3>
+            <div class="tablewrap"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Línea</th></tr></thead><tbody id="logRows"></tbody></table></div>
+            <p class="note">Los patrones cubren mensajes comunes de Asuswrt. El texto exacto varía según firmware, así que algo puede quedar sin clasificar.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATOS › MONITOR -->
+      <section class="view" id="v-monitor" hidden>
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <label class="q" style="flex:1;min-width:200px">Dónde estás midiendo
+              <select id="pingLoc"><option>Junto al RT-BE50</option><option>Junto al RT-AX82U</option><option>Punto intermedio</option><option>Lugar donde falló</option></select>
+            </label>
+            <div class="row" style="align-self:flex-end">
+              <button class="primary" id="pingBtn" type="button">Iniciar</button>
+              <button id="pingReset" type="button">Borrar mediciones</button>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b id="sAvg">—</b><span>Latencia media (ms)</span></div>
+            <div class="stat"><b id="sJit">—</b><span>Jitter (ms)</span></div>
+            <div class="stat"><b id="sLoss">—</b><span>Pérdida (%)</span></div>
+            <div class="stat"><b id="sN">0</b><span>Muestras</span></div>
+          </div>
+          <canvas class="spark" id="spark" aria-label="Gráfico de latencia"></canvas>
+          <p class="note">Referencia orientativa: en Wi-Fi doméstico, picos frecuentes sobre ~150 ms o pérdida sobre ~1 % suelen notarse en videollamadas. La medición incluye Wi-Fi, malla, módem y proveedor.</p>
+        </div>
+        <div class="panel">
+          <h3>Mediciones guardadas</h3>
+          <div id="pingSessions" class="findings"></div>
+        </div>
+      </section>
+
+      <!-- IA › ANALIZAR -->
+      <section class="view" id="v-analizar" hidden>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Qué se envía</h3>
+            <label class="check"><input type="checkbox" id="incShot" checked> Captura de la app ASUS</label>
+            <label class="check"><input type="checkbox" id="incLog" checked> Extracto del registro (últimas 150 líneas)</label>
+            <label class="check"><input type="checkbox" id="maskMac" checked> Ocultar direcciones MAC</label>
+            <label class="q">Más capturas (opcional)<small>Por ejemplo, la página AiMesh del nodo o la lista de clientes.</small>
+              <input type="file" id="extraShots" accept="image/*" multiple>
+            </label>
+            <label class="q">Nivel de análisis
+              <select id="tier"><option value="default">Estándar</option><option value="complex">Profundo (tarda más)</option></select>
+            </label>
+            <div class="row">
+              <button class="primary" id="askBtn" type="button">Analizar mi red</button>
+              <button id="stopBtn" type="button" disabled>Detener</button>
+            </div>
+            <p class="note" id="aiNote">Al primer uso, Claude te pedirá permiso para que esta página lo consulte. Requiere Internet.</p>
+          </div>
+          <div class="panel flat">
+            <div class="answer" id="answer"><p class="muted">Aquí aparecerá el análisis. Se pedirá a Claude que separe lo que sabe de lo que supone y que no invente menús ni versiones de firmware.</p></div>
+            <form class="row" id="followForm" hidden>
+              <input type="text" id="followInput" placeholder="Pregunta de seguimiento, p. ej. ¿cómo activo el backhaul Ethernet?" style="flex:1;min-width:200px">
+              <button class="primary" type="submit" id="followBtn">Enviar</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- AYUDA › GUÍA -->
+      <section class="view" id="v-guia" hidden>
+        <div class="panel">
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px">
+            <li>Entra desde Safari a <span class="mono">http://192.168.50.1</span> o <span class="mono">http://www.asusrouter.com</span> (dirección por defecto de ASUS; puede variar si la cambiaste).</li>
+            <li><b>Tipo de backhaul y señal del nodo:</b> página AiMesh → selecciona RT-AX82U.</li>
+            <li><b>Firmware:</b> Administración → Actualización de firmware (aparecen ambos nodos).</li>
+            <li><b>Registro:</b> Registro del sistema → Registro general. Cópialo y pégalo en <a href="#registro">Registro del router</a>.</li>
+            <li><b>Monitoreo de red:</b> WAN → Conexión a Internet → «Network Monitoring» (DNS Query / Ping).</li>
+            <li><b>Doble NAT:</b> en el mapa de red, mira la IP WAN del BE50. Si empieza con 192.168, 10. o 172.16–31, el módem también hace de router.</li>
+          </ul>
+          <p class="note">Los nombres de menú cambian entre versiones de firmware e idioma. Si no encuentras uno, búscalo por la palabra clave.</p>
+        </div>
+      </section>
+
+      <nav class="pager" id="pager" aria-label="Paso anterior y siguiente"></nav>
+    </main>
+  </div>
 </div>
 
 <script>
 (()=>{
-const $=s=>document.querySelector(s);
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
+/* ---------- Arquitectura de navegación ---------- */
+const NAV=[
+ {id:"diag",label:"Diagnóstico",items:[
+   {id:"resumen",label:"Panel",lead:"Dónde estás, cuál es la sospecha principal y qué conviene hacer ahora."},
+   {id:"causas",label:"Causas probables",lead:"Las diez hipótesis ordenadas, con cómo comprobar y resolver cada una."},
+   {id:"topologia",label:"Topología y captura",lead:"Tu malla y lo que se puede leer de la captura de la app ASUS."}]},
+ {id:"datos",label:"Recolectar datos",items:[
+   {id:"sintoma",label:"Síntoma",lead:"Cuéntale a la app qué notaste. «No sé» también sirve: la regla pesa menos."},
+   {id:"red",label:"Configuración de red",lead:"Cómo están conectados y configurados tus equipos."},
+   {id:"registro",label:"Registro del router",lead:"El dato más objetivo: lo que el RT-BE50 anotó durante la tarde."},
+   {id:"hallazgos",label:"Hallazgos del registro",lead:"Eventos reconocidos en el registro, agrupados y por hora."},
+   {id:"monitor",label:"Monitor en vivo",lead:"Mide latencia y pérdida caminando por la casa: primero junto al RT-BE50, luego junto al RT-AX82U."}]},
+ {id:"ia",label:"Asistente IA",items:[
+   {id:"analizar",label:"Analizar con Claude",lead:"Envía lo reunido a Claude para una segunda opinión razonada."}]},
+ {id:"ayuda",label:"Ayuda",items:[
+   {id:"guia",label:"Dónde está cada dato",lead:"Atajos a cada pantalla del router que la app te pide revisar."}]}
+];
+const FLAT=NAV.flatMap(g=>g.items.map(i=>({...i,g})));
+const LEGACY={preguntas:"sintoma",ia:"analizar"};
+
 /* ---------- Cuestionario ---------- */
 const QUESTIONS=[
- {id:"backhaul",t:"¿Cómo se conecta el RT-AX82U al RT-BE50?",h:"Página AiMesh → nodo. Es el dato más determinante.",o:[["nose","No sé"],["cable","Cable Ethernet"],["wifi","Inalámbrico"]]},
- {id:"onlyAlert",t:"¿Fue solo un aviso de la app y navegabas normal?",o:[["nose","No sé"],["si","Sí, solo el aviso"],["no","No, perdí conexión de verdad"]]},
- {id:"allDevices",t:"¿Afectó a todos los dispositivos?",o:[["nose","No sé"],["si","Sí, a todos"],["no","Solo a algunos"]]},
- {id:"wiredAlso",t:"¿Un equipo conectado por cable también perdió Internet?",o:[["nose","No sé / no hay"],["si","Sí"],["no","No, siguió bien"]]},
- {id:"where",t:"¿Dónde se notó más?",o:[["nose","No sé"],["main","Cerca del RT-BE50"],["node","Cerca del RT-AX82U"],["all","En toda la casa"]]},
- {id:"duration",t:"¿Cuánto duró?",o:[["nose","No sé"],["sec","Segundos"],["min","1 a 2 minutos"],["long","Varios minutos"],["inter","Intermitente por horas"]]},
- {id:"band",t:"¿En qué red estaban los equipos afectados?",o:[["nose","No sé"],["24","SERGIO ROOM (2,4 GHz)"],["5","SERGIO ROOM_5G"],["both","Ambas"]]},
- {id:"fw",t:"¿Ambos equipos tienen el último firmware?",o:[["nose","No sé"],["si","Sí, los dos"],["no","No / uno pendiente"]]},
- {id:"netmon",t:"¿Está activo «Network Monitoring» (DNS Query o Ping)?",h:"WAN → Conexión a Internet.",o:[["nose","No sé"],["si","Sí"],["no","No"]]},
- {id:"ispMode",t:"¿El equipo del proveedor está en modo bridge?",h:"Si la IP WAN del BE50 empieza con 192.168, 10. o 172.16–31, hay doble NAT.",o:[["nose","No sé"],["si","Sí, bridge"],["no","No, también hace de router"]]},
- {id:"reset",t:"¿Reseteaste el RT-AX82U antes de agregarlo como nodo?",h:"Si estuvo enchufado como router, pudo repartir IP por su cuenta.",o:[["nose","No sé"],["si","Sí"],["no","No"]]},
- {id:"oldDevices",t:"¿Hay equipos antiguos o IoT (cámaras, enchufes, TV viejas)?",o:[["nose","No sé"],["si","Sí"],["no","No"]]}
+ {id:"onlyAlert",g:"sintoma",t:"¿Fue solo un aviso de la app y navegabas normal?",o:[["nose","No sé"],["si","Sí, solo el aviso"],["no","No, perdí conexión de verdad"]]},
+ {id:"allDevices",g:"sintoma",t:"¿Afectó a todos los dispositivos?",o:[["nose","No sé"],["si","Sí, a todos"],["no","Solo a algunos"]]},
+ {id:"wiredAlso",g:"sintoma",t:"¿Un equipo conectado por cable también perdió Internet?",o:[["nose","No sé / no hay"],["si","Sí"],["no","No, siguió bien"]]},
+ {id:"where",g:"sintoma",t:"¿Dónde se notó más?",o:[["nose","No sé"],["main","Cerca del RT-BE50"],["node","Cerca del RT-AX82U"],["all","En toda la casa"]]},
+ {id:"duration",g:"sintoma",t:"¿Cuánto duró?",o:[["nose","No sé"],["sec","Segundos"],["min","1 a 2 minutos"],["long","Varios minutos"],["inter","Intermitente por horas"]]},
+ {id:"band",g:"sintoma",t:"¿En qué red estaban los equipos afectados?",o:[["nose","No sé"],["24","SERGIO ROOM (2,4 GHz)"],["5","SERGIO ROOM_5G"],["both","Ambas"]]},
+ {id:"backhaul",g:"red",t:"¿Cómo se conecta el RT-AX82U al RT-BE50?",h:"Página AiMesh → nodo. Es el dato más determinante.",o:[["nose","No sé"],["cable","Cable Ethernet"],["wifi","Inalámbrico"]]},
+ {id:"fw",g:"red",t:"¿Ambos equipos tienen el último firmware?",o:[["nose","No sé"],["si","Sí, los dos"],["no","No / uno pendiente"]]},
+ {id:"netmon",g:"red",t:"¿Está activo «Network Monitoring» (DNS Query o Ping)?",h:"WAN → Conexión a Internet.",o:[["nose","No sé"],["si","Sí"],["no","No"]]},
+ {id:"ispMode",g:"red",t:"¿El equipo del proveedor está en modo bridge?",h:"Si la IP WAN del BE50 es privada, hay doble NAT.",o:[["nose","No sé"],["si","Sí, bridge"],["no","No, también hace de router"]]},
+ {id:"reset",g:"red",t:"¿Reseteaste el RT-AX82U antes de agregarlo como nodo?",h:"Si estuvo enchufado como router, pudo repartir IP por su cuenta.",o:[["nose","No sé"],["si","Sí"],["no","No"]]},
+ {id:"oldDevices",g:"red",t:"¿Hay equipos antiguos o IoT (cámaras, enchufes, TV viejas)?",o:[["nose","No sé"],["si","Sí"],["no","No"]]}
 ];
 const DEFAULTS=Object.fromEntries(QUESTIONS.map(q=>[q.id,"nose"]));
 let answers=Object.assign({},DEFAULTS,store.get("answers",{}));
-function renderForm(){
-  $("#qform").innerHTML=QUESTIONS.map(q=>`<label class="q" for="q_${q.id}">${esc(q.t)}${q.h?`<small>${esc(q.h)}</small>`:""}
-   <select id="q_${q.id}" data-q="${q.id}">${q.o.map(([v,l])=>`<option value="${v}"${answers[q.id]===v?" selected":""}>${esc(l)}</option>`).join("")}</select></label>`).join("");
-  $("#qform").addEventListener("change",e=>{const id=e.target.dataset.q;if(!id)return;answers[id]=e.target.value;store.set("answers",answers);renderTopo();renderCauses();});
+let touched=store.get("touched",{});
+const answeredIn=g=>QUESTIONS.filter(q=>q.g===g&&touched[q.id]).length;
+const totalIn=g=>QUESTIONS.filter(q=>q.g===g).length;
+function renderForms(){
+  $$("form.qgrid[data-group]").forEach(f=>{const g=f.dataset.group;
+    f.innerHTML=QUESTIONS.filter(q=>q.g===g).map(q=>`<label class="q" for="q_${q.id}">${esc(q.t)}${q.h?`<small>${esc(q.h)}</small>`:""}
+     <select id="q_${q.id}" data-q="${q.id}">${q.o.map(([v,l])=>`<option value="${v}"${answers[q.id]===v?" selected":""}>${esc(l)}</option>`).join("")}</select></label>`).join("");
+    f.addEventListener("change",e=>{const id=e.target.dataset.q;if(!id)return;answers[id]=e.target.value;touched[id]=true;store.set("answers",answers);store.set("touched",touched);refresh();});
+  });
 }
 
 /* ---------- Topología ---------- */
-function renderTopo(){
+function topoSVG(){
   const bh=answers.backhaul, cls=bh==="cable"?"":bh==="wifi"?" wifi":" unk";
-  $("#bhChip").textContent="Backhaul: "+(bh==="cable"?"cable Ethernet":bh==="wifi"?"inalámbrico":"sin confirmar");
-  $("#topo").innerHTML=`
-  <path class="link" d="M100 150 H210"/>
-  <path class="link${cls}" d="M310 150 H420"/>
-  <circle class="node cloud" cx="60" cy="150" r="40"/>
-  <text class="lbl" x="60" y="155" text-anchor="middle">WAN</text>
-  <text class="lbl" x="60" y="222" text-anchor="middle">Internet</text>
-  <text class="sub" x="60" y="240" text-anchor="middle">módem del proveedor</text>
+  return `<path class="link" d="M100 150 H210"/><path class="link${cls}" d="M310 150 H420"/>
+  <circle class="node cloud" cx="60" cy="150" r="40"/><text class="lbl" x="60" y="155" text-anchor="middle">WAN</text>
+  <text class="lbl" x="60" y="222" text-anchor="middle">Internet</text><text class="sub" x="60" y="240" text-anchor="middle">módem del proveedor</text>
   <rect class="node" x="210" y="105" width="100" height="90" rx="14"/>
   <g class="ico"><rect x="236" y="140" width="48" height="16" rx="4"/><rect x="242" y="118" width="3" height="22"/><rect x="256" y="114" width="3" height="26"/><rect x="261" y="114" width="3" height="26"/><rect x="275" y="118" width="3" height="22"/></g>
   <text class="mono" x="260" y="180" text-anchor="middle">principal</text>
-  <text class="lbl" x="260" y="222" text-anchor="middle">RT-BE50</text>
-  <text class="sub" x="260" y="240" text-anchor="middle">Wi-Fi 7 · dormitorio · nuevo</text>
+  <text class="lbl" x="260" y="222" text-anchor="middle">RT-BE50</text><text class="sub" x="260" y="240" text-anchor="middle">Wi-Fi 7 · dormitorio · nuevo</text>
   <rect class="node" x="420" y="105" width="90" height="90" rx="14"/>
   <g class="ico"><rect x="443" y="140" width="44" height="16" rx="4"/><rect x="449" y="120" width="3" height="20"/><rect x="463" y="116" width="3" height="24"/><rect x="477" y="120" width="3" height="20"/></g>
   <text class="mono" x="465" y="180" text-anchor="middle">nodo</text>
-  <text class="lbl" x="465" y="222" text-anchor="middle">RT-AX82U</text>
-  <text class="sub" x="465" y="240" text-anchor="middle">Wi-Fi 6 · comedor</text>
+  <text class="lbl" x="465" y="222" text-anchor="middle">RT-AX82U</text><text class="sub" x="465" y="240" text-anchor="middle">Wi-Fi 6 · comedor</text>
   <text class="mono" x="365" y="140" text-anchor="middle">${bh==="cable"?"Ethernet":bh==="wifi"?"5 GHz":"¿?"}</text>
   <text class="mono" x="155" y="140" text-anchor="middle">WAN</text>
   <text class="sub" x="260" y="40" text-anchor="middle">SSID: SERGIO ROOM (2,4 GHz) · SERGIO ROOM_5G (5 GHz)</text>
   <text class="sub" x="260" y="58" text-anchor="middle">Ambos nodos emiten los dos SSID</text>`;
+}
+function renderTopo(){
+  const bh=answers.backhaul;
+  $("#bhChip").textContent="Backhaul: "+(bh==="cable"?"cable Ethernet":bh==="wifi"?"inalámbrico":"sin confirmar");
+  $("#topo").innerHTML=topoSVG();$("#topoMini").innerHTML=topoSVG();
 }
 
 /* ---------- Registro ---------- */
@@ -406,7 +529,7 @@ function renderLog(){
   const f=PATTERNS.filter(p=>LF.counts[p.k]);
   const box=$("#findings");
   if(!f.length){box.innerHTML=`<p class="muted">No se encontraron eventos conocidos. Revisa que pegaste el «Registro general» completo.</p>`;}
-  else box.innerHTML=f.map(p=>`<div class="finding"><span class="n">${LF.counts[p.k]}</span><div><b>${esc(p.label)}</b><p>${esc(p.x)}</p></div><span class="chip ${p.sev}">${p.sev}</span></div>`).join("")+
+  else box.innerHTML=(logIsSample?`<p class="note">Estos hallazgos vienen del <b>registro de ejemplo</b>. <a href="#registro">Pega el tuyo</a> para ver los reales.</p>`:"")+f.map(p=>`<div class="finding"><span class="n">${LF.counts[p.k]}</span><div><b>${esc(p.label)}</b><p>${esc(p.x)}</p></div><span class="chip ${p.sev}">${p.sev}</span></div>`).join("")+
     (Object.keys(LF.macs).length?`<p class="note">Clientes con más desconexiones: ${Object.entries(LF.macs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([m,n])=>`<span class="mono">${esc(m)}</span> (${n})`).join(", ")}${LF.rssiLow?` · ${LF.rssiLow} con señal ≤ -75 dBm`:""}.</p>`:"");
   $("#logRows").innerHTML=LF.rows.slice(-300).map(r=>`<tr><td class="m">${esc(r.t)}</td><td>${esc(r.k)}</td><td class="l">${esc(r.line)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Sin líneas relevantes.</td></tr>`;
   renderHist();
@@ -496,14 +619,96 @@ function causes(){
   ],["Revisa si hubo un reinicio a la hora de la caída.","Mira la fecha de instalación del firmware actual."],["Si fue un único evento coincidente con una actualización, observa 48 h antes de cambiar nada."]);
   return C.sort((x,y)=>y.score-x.score);
 }
-function level(s){return s>=55?"alta":s>=30?"media":"baja"}
-function renderCauses(){
-  const list=causes();
-  $("#causes").innerHTML=list.map((c,i)=>{const lv=level(c.score);const col=lv==="alta"?"var(--crit)":lv==="media"?"var(--warn)":"var(--good)";
-    return `<li><details${i===0?" open":""}><summary><h3>${esc(c.title)}</h3><span class="chip ${lv}">${lv} · ${c.score}</span><span class="meter"><i style="width:${c.score}%;background:${col}"></i></span></summary>
+const level=s=>s>=55?"alta":s>=30?"media":"baja";
+const levelColor=lv=>lv==="alta"?"var(--crit)":lv==="media"?"var(--warn)":"var(--good)";
+function renderCauses(list){
+  $("#causes").innerHTML=list.map((c,i)=>{const lv=level(c.score);
+    return `<li><details${i===0?" open":""}><summary><h3>${esc(c.title)}</h3><span class="chip ${lv}">${lv} · ${c.score}</span><span class="meter"><i style="width:${c.score}%;background:${levelColor(lv)}"></i></span></summary>
     <div class="cbody"><div><h4>Por qué</h4>${c.why.length?`<ul>${c.why.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:`<p class="muted">Solo puntaje base. Responde el cuestionario o pega el registro.</p>`}</div>
     <div><h4>Cómo comprobarlo</h4><ul>${c.check.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></div>
     <div><h4>Qué hacer</h4><ul>${c.fix.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></div></div></details></li>`;}).join("");
+}
+
+/* ---------- Panel ---------- */
+let aiDone=store.get("aiDone",false);
+function progressModel(){
+  const sDone=answeredIn("sintoma"),rDone=answeredIn("red");
+  const locs=new Set(sessions.map(s=>s.loc));
+  const both=locs.has("Junto al RT-BE50")&&locs.has("Junto al RT-AX82U");
+  return [
+    {id:"sintoma",label:"Describir el síntoma",detail:`${sDone} de ${totalIn("sintoma")} respuestas`,st:sDone>=totalIn("sintoma")?"done":sDone?"part":"todo",w:sDone/totalIn("sintoma")},
+    {id:"red",label:"Confirmar la configuración",detail:touched.backhaul?`${rDone} de ${totalIn("red")} · backhaul confirmado`:`${rDone} de ${totalIn("red")} · falta el backhaul`,st:rDone>=totalIn("red")?"done":rDone?"part":"todo",w:rDone/totalIn("red")},
+    {id:"registro",label:"Pegar el registro del router",detail:logIsSample?"Usando el ejemplo":"Registro real cargado",st:logIsSample?"todo":"done",w:logIsSample?0:1},
+    {id:"monitor",label:"Medir junto a cada nodo",detail:sessions.length?`${locs.size} ${locs.size===1?"lugar medido":"lugares medidos"}`:"Sin mediciones",st:both?"done":sessions.length?"part":"todo",w:both?1:sessions.length?.5:0},
+    {id:"analizar",label:"Pedir segunda opinión a la IA",detail:aiDone?"Análisis recibido":sample?"Disponible":"Solo en claude.ai",st:aiDone?"done":"todo",w:aiDone?1:0}
+  ];
+}
+function nextStep(P){
+  if(!touched.backhaul) return {go:"red",title:"Confirma cómo se conecta el nodo",text:"Es el dato que más mueve el diagnóstico: con cable o por Wi-Fi cambia por completo la lista de sospechosos. Míralo en la página AiMesh del router.",cta:"Ir a Configuración de red"};
+  const p=P.find(x=>x.st!=="done"&&x.id!=="analizar")||P.find(x=>x.st!=="done");
+  if(!p) return {go:"causas",title:"Tienes todos los datos",text:"Revisa las causas ordenadas y aplica primero el cambio más barato de la causa principal.",cta:"Ver causas probables"};
+  const T={sintoma:["Termina de describir el síntoma","Cada respuesta descarta o refuerza hipótesis. Toma un minuto.","Responder preguntas"],
+    red:["Completa la configuración de red","Firmware, modo del módem y Network Monitoring explican muchas falsas alarmas.","Completar"],
+    registro:["Pega el registro del router","Es la evidencia objetiva de lo que pasó en la tarde, con hora exacta.","Pegar registro"],
+    monitor:["Mide junto a cada nodo","Compara latencia y pérdida cerca del RT-BE50 y cerca del RT-AX82U para ubicar el tramo débil.","Abrir monitor"],
+    analizar:["Pide una segunda opinión","Claude revisa todo lo reunido, incluida tu captura, y propone pruebas en orden.","Analizar con Claude"]}[p.id];
+  return {go:p.id,title:T[0],text:T[1],cta:T[2]};
+}
+function renderDash(list){
+  const top=list[0],lv=level(top.score);
+  $("#heroCard").className="panel hero "+lv;
+  $("#heroCard").innerHTML=`<div class="row" style="justify-content:space-between"><span class="eyebrow">Sospecha principal ahora</span><span class="chip ${lv}">${lv} · ${top.score}</span></div>
+   <h3 style="font-size:1.35rem">${esc(top.title)}</h3>
+   <p class="muted">${top.why.length?esc(top.why.slice(0,2).join(" · ")):"Con pocos datos todavía; el orden puede cambiar mucho."}</p>
+   <p><b>Primer paso:</b> ${esc(top.fix[0])}</p>
+   <div class="row"><a class="btn" href="#causas">Ver las ${list.length} causas</a><span class="muted" style="font-size:.85rem">Le sigue: ${esc(list[1].title)} (${list[1].score})</span></div>`;
+  const P=progressModel(),pct=Math.round(P.reduce((a,b)=>a+b.w,0)/P.length*100);
+  $("#progBadge").textContent=pct+" %";$("#progBar").style.width=pct+"%";
+  $("#steps").innerHTML=P.map(p=>`<li><a href="#${p.id}"><span class="tick ${p.st==="done"?"done":p.st==="part"?"part":""}">${p.st==="done"?"✓":""}</span><span><b style="font-weight:500">${esc(p.label)}</b><br><span class="muted" style="font-size:.85rem">${esc(p.detail)}</span></span><span class="muted">›</span></a></li>`).join("");
+  const n=nextStep(P);
+  $("#nextCard").innerHTML=`<span class="eyebrow">Siguiente paso recomendado</span><h3 style="font-size:1.2rem">${esc(n.title)}</h3><p>${esc(n.text)}</p><div><a class="btn primary" href="#${n.go}">${esc(n.cta)}</a></div>`;
+  return P;
+}
+
+/* ---------- Navegación ---------- */
+let current="resumen";
+function badgeFor(id,P,list){
+  const st=x=>P.find(p=>p.id===x);
+  switch(id){
+    case "causas":{const a=list.filter(c=>level(c.score)==="alta").length;return a?[`${a} alta${a>1?"s":""}`,"crit"]:["",""];}
+    case "sintoma":return [`${answeredIn("sintoma")}/${totalIn("sintoma")}`,st("sintoma").st==="done"?"ok":""];
+    case "red":return [`${answeredIn("red")}/${totalIn("red")}`,st("red").st==="done"?"ok":touched.backhaul?"":"warn"];
+    case "registro":return logIsSample?["ejemplo","warn"]:["real","ok"];
+    case "hallazgos":{const k=PATTERNS.filter(p=>LF.counts[p.k]).length;return [String(k),k?"":""];}
+    case "monitor":return ping.on?["midiendo","crit"]:sessions.length?[String(sessions.length),"ok"]:["",""];
+    case "analizar":return aiDone?["listo","ok"]:["",""];
+  }
+  return ["",""];
+}
+function renderNav(P,list){
+  const b=id=>{const [t,c]=badgeFor(id,P,list);return t?`<span class="badge ${c}">${esc(t)}</span>`:"";};
+  const cur=FLAT.find(i=>i.id===current);
+  $("#sideNav").innerHTML=NAV.map(g=>`<div class="ngroup"><h4>${esc(g.label)}</h4>${g.items.map(i=>`<a href="#${i.id}"${i.id===current?' aria-current="page"':""}><span>${esc(i.label)}</span>${b(i.id)}</a>`).join("")}</div>`).join("");
+  $("#gTabs").innerHTML=NAV.map(g=>`<a href="#${g.items[0].id}"${g.id===cur.g.id?' aria-current="true"':""}>${esc(g.label)}</a>`).join("");
+  $("#subTabs").innerHTML=cur.g.items.length>1?cur.g.items.map(i=>`<a href="#${i.id}"${i.id===current?' aria-current="page"':""}>${esc(i.label)}${b(i.id)}</a>`).join(""):"";
+  $("#subTabs").hidden=cur.g.items.length<2;
+  $("#crumb").innerHTML=`${esc(cur.g.label)} › <b>${esc(cur.label)}</b>`;
+  $("#vTitle").textContent=cur.label;$("#vLead").textContent=cur.lead;
+  const idx=FLAT.findIndex(i=>i.id===current),prev=FLAT[idx-1],next=FLAT[idx+1];
+  $("#pager").innerHTML=(prev?`<a href="#${prev.id}"><small>‹ Anterior</small><span>${esc(prev.label)}</span></a>`:"")+(next?`<a class="next" href="#${next.id}"><small>Siguiente ›</small><span>${esc(next.label)}</span></a>`:"");
+  const act=$("#subTabs a[aria-current]");if(act&&act.scrollIntoView)act.scrollIntoView({block:"nearest",inline:"nearest"});
+}
+function refresh(){
+  ["sintoma","red"].forEach(g=>{const e=$("#qcount-"+g);if(e){const d=answeredIn(g),t=totalIn(g);e.textContent=`${d} de ${t} respondidas`;e.className="badge"+(d>=t?" ok":"");}});
+  const list=causes();renderTopo();renderCauses(list);const P=renderDash(list);renderNav(P,list);
+}
+function route(){
+  let h=location.hash.slice(1);h=LEGACY[h]||h;
+  current=FLAT.some(i=>i.id===h)?h:"resumen";
+  FLAT.forEach(i=>{$("#v-"+i.id).hidden=i.id!==current;});
+  refresh();
+  if(current==="monitor")drawPing();
+  window.scrollTo(0,0);
 }
 
 /* ---------- Monitor ---------- */
@@ -513,19 +718,19 @@ function stats(arr){const ok=arr.filter(x=>x!=null);const n=arr.length;if(!n)ret
 async function onePing(){
   const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),3000);const t0=performance.now();
   try{const r=await fetch("ping.txt?t="+Date.now(),{cache:"no-store",signal:ctl.signal});await r.text();if(!r.ok)throw 0;ping.samples.push(performance.now()-t0);}catch(e){ping.samples.push(null);}finally{clearTimeout(to);}
-  if(ping.samples.length>600)ping.samples.shift();drawPing();
+  if(ping.samples.length>600)ping.samples.shift();if(current==="monitor")drawPing();
 }
 function drawPing(){
   const s=stats(ping.samples);
   $("#sAvg").textContent=s&&s.avg!=null?s.avg.toFixed(0):"—";$("#sJit").textContent=s&&s.jit!=null?s.jit.toFixed(0):"—";
   $("#sLoss").textContent=s?s.loss.toFixed(1):"—";$("#sN").textContent=s?s.n:0;
-  const cv=$("#spark"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
+  const cv=$("#spark"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(!W)return;cv.width=W*dpr;cv.height=H*dpr;
   const g=cv.getContext("2d");g.scale(dpr,dpr);const cs=getComputedStyle(document.documentElement);
   const acc=cs.getPropertyValue("--accent").trim(),mut=cs.getPropertyValue("--muted").trim(),crit=cs.getPropertyValue("--crit").trim(),line=cs.getPropertyValue("--line").trim();
   const data=ping.samples.slice(-120);const ok=data.filter(x=>x!=null);const max=Math.max(100,...ok)*1.15;const pad=28;
   g.font="11px "+cs.getPropertyValue("--font-mono");g.fillStyle=mut;g.strokeStyle=line;g.lineWidth=1;
   [0,.5,1].forEach(f=>{const y=H-10-(H-20)*f;g.beginPath();g.moveTo(pad,y);g.lineTo(W-6,y);g.stroke();g.fillText(Math.round(max*f),2,y+4);});
-  if(!data.length){g.fillText("Pulsa Iniciar para medir",pad+8,H/2);return;}
+  if(!data.length){g.fillText("Elige dónde estás y pulsa Iniciar",pad+8,H/2);return;}
   const x=i=>pad+(W-pad-6)*(i/(Math.max(119,data.length-1)));const y=v=>H-10-(H-20)*(v/max);
   g.beginPath();let st=false;data.forEach((v,i)=>{if(v==null){st=false;return;}if(!st){g.moveTo(x(i),y(v));st=true;}else g.lineTo(x(i),y(v));});
   g.strokeStyle=acc;g.lineWidth=2;g.stroke();
@@ -533,13 +738,13 @@ function drawPing(){
   const last=data[data.length-1];if(last!=null){g.fillStyle=acc;g.beginPath();g.arc(x(data.length-1),y(last),3.5,0,7);g.fill();}
 }
 function renderSessions(){
-  $("#pingSessions").innerHTML=sessions.slice(-6).reverse().map(s=>`<div class="finding"><span class="n">${s.avg!=null?Math.round(s.avg):"—"}</span><div><b>${esc(s.loc)}</b><p>${new Date(s.at).toLocaleString("es")} · ${s.n} muestras · jitter ${s.jit!=null?Math.round(s.jit):"—"} ms</p></div><span class="chip ${s.loss>1?"alta":s.loss>0?"media":"baja"}">${s.loss.toFixed(1)} % pérdida</span></div>`).join("");
+  $("#pingSessions").innerHTML=sessions.length?sessions.slice(-8).reverse().map(s=>`<div class="finding"><span class="n">${s.avg!=null?Math.round(s.avg):"—"}</span><div><b>${esc(s.loc)}</b><p>${new Date(s.at).toLocaleString("es")} · ${s.n} muestras · jitter ${s.jit!=null?Math.round(s.jit):"—"} ms · latencia media en ms</p></div><span class="chip ${s.loss>1?"alta":s.loss>0?"media":"baja"}">${s.loss.toFixed(1)} % pérdida</span></div>`).join(""):`<p class="muted">Aún no hay mediciones. Cada vez que pulses «Detener y guardar» quedará una aquí, con su ubicación.</p>`;
 }
 async function togglePing(){
   if(ping.on){clearInterval(ping.timer);ping.on=false;$("#pingBtn").textContent="Iniciar";
     const s=stats(ping.samples);if(s&&s.n>=5){sessions.push({loc:$("#pingLoc").value,at:Date.now(),...s});sessions=sessions.slice(-20);store.set("sessions",sessions);renderSessions();}
-    try{ping.lock&&ping.lock.release();}catch(e){}ping.lock=null;return;}
-  ping.samples=[];ping.on=true;$("#pingBtn").textContent="Detener y guardar";onePing();ping.timer=setInterval(onePing,1000);
+    try{ping.lock&&ping.lock.release();}catch(e){}ping.lock=null;refresh();return;}
+  ping.samples=[];ping.on=true;$("#pingBtn").textContent="Detener y guardar";onePing();ping.timer=setInterval(onePing,1000);refresh();
   try{ping.lock=await navigator.wakeLock?.request("screen");}catch(e){}
 }
 
@@ -547,7 +752,6 @@ async function togglePing(){
 let sample=null,turns=[],ctl=null;
 const maskIf=s=>$("#maskMac").checked?s.replace(MAC_RE,m=>m.slice(0,8)+":xx:xx:xx"):s;
 function contextText(){
-  const lbl=Object.fromEntries(QUESTIONS.map(q=>[q.id,q]));
   const ans=QUESTIONS.map(q=>`- ${q.t} → ${q.o.find(o=>o[0]===answers[q.id])[1]}`).join("\n");
   const fnd=PATTERNS.filter(p=>LF.counts[p.k]).map(p=>`- ${p.label}: ${LF.counts[p.k]}`).join("\n")||"- (sin eventos reconocidos)";
   const top=causes().slice(0,5).map(c=>`- ${c.title}: índice ${c.score} (${c.why.join("; ")||"solo base"})`).join("\n");
@@ -558,7 +762,7 @@ function contextText(){
 - SSID separados: "SERGIO ROOM" (2,4 GHz) y "SERGIO ROOM_5G" (5 GHz).
 - Síntoma: por la tarde la app ASUS informó inestabilidad de la red. La captura de la app (01:53) muestra Estado "Conectándose..." y 0 clientes en ambos nodos.
 
-RESPUESTAS DEL USUARIO
+RESPUESTAS DEL USUARIO ("No sé" = sin dato)
 ${ans}
 
 HALLAZGOS DEL REGISTRO (conteos por patrón)
@@ -625,6 +829,7 @@ async function run(isFollow){
     if(!isFollow){const im=await images();if(im)opts.images=im;}
     const {text,truncated}=await sample(turns,opts);
     turns.push({role:"assistant",content:text});renderTurns();
+    aiDone=true;store.set("aiDone",true);refresh();
     $("#aiNote").textContent=truncated?"La respuesta se cortó por largo. Pide una sección a la vez.":"Listo. Puedes hacer preguntas de seguimiento.";
     $("#followForm").hidden=false;
   }catch(e){
@@ -635,27 +840,24 @@ async function run(isFollow){
   }finally{$("#askBtn").disabled=false;$("#followBtn").disabled=false;$("#stopBtn").disabled=true;}
 }
 
-/* ---------- Navegación ---------- */
-const VIEWS=["resumen","preguntas","registro","monitor","ia"];
-function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"resumen";
-  VIEWS.forEach(x=>{$("#v-"+x).hidden=x!==v;});document.querySelectorAll("nav.tabs a").forEach(a=>{if(a.dataset.view===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
-  if(v==="monitor")drawPing();}
-
 /* ---------- Arranque ---------- */
-renderForm();renderTopo();
-$("#logInput").value=logText;renderLog();renderCauses();renderSessions();
-$("#analyzeBtn").onclick=()=>{logText=$("#logInput").value;logIsSample=logText.trim()===SAMPLE_LOG.trim();store.set("log",logIsSample?null:logText);renderLog();renderCauses();};
+renderForms();
+$("#logInput").value=logText;renderLog();renderSessions();
+$("#analyzeBtn").onclick=()=>{logText=$("#logInput").value;logIsSample=logText.trim()===SAMPLE_LOG.trim();store.set("log",logIsSample?null:logText);renderLog();location.hash="hallazgos";};
 $("#clearBtn").onclick=()=>{$("#logInput").value="";$("#logInput").focus();};
 $("#logFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("#logInput").value=r.result;$("#analyzeBtn").click();};r.readAsText(f);};
-$("#pingBtn").onclick=togglePing;$("#pingReset").onclick=()=>{sessions=[];store.set("sessions",[]);ping.samples=[];renderSessions();drawPing();};
+$("#pingBtn").onclick=togglePing;$("#pingReset").onclick=()=>{sessions=[];store.set("sessions",[]);ping.samples=[];renderSessions();drawPing();refresh();};
 $("#stopBtn").onclick=()=>ctl&&ctl.abort();
 $("#askBtn").onclick=()=>{turns=[{role:"user",content:RULES+"\n\nDATOS:\n"+contextText()+"\n\nSi se adjunta una imagen, es la captura de la app ASUS Router (y capturas adicionales del usuario)."}];run(false);};
 $("#followForm").addEventListener("submit",e=>{e.preventDefault();const q=$("#followInput").value.trim();if(!q)return;$("#followInput").value="";turns.push({role:"user",content:q});turns=[turns[0],...turns.slice(1).slice(-10)];run(true);});
-window.addEventListener("hashchange",route);route();window.addEventListener("resize",()=>{if(!$("#v-monitor").hidden)drawPing();});
+window.addEventListener("hashchange",route);route();
+window.addEventListener("resize",()=>{if(current==="monitor")drawPing();});
 (async()=>{
   sample=window.claude&&window.claude.use?await window.claude.use("sample").catch(()=>null):null;
-  $("#engineState").textContent="Motor de reglas local activo · IA: "+(sample?"disponible":"no disponible en esta vista");
+  $$(".engineState").forEach(e=>e.textContent="Reglas locales activas · IA "+(sample?"disponible":"no disponible aquí"));
+  $$("#aiDot,#aiDot2").forEach(d=>d.classList.toggle("on",!!sample));
   if(!sample){$("#askBtn").disabled=true;$("#aiNote").textContent="La IA solo funciona abierta desde claude.ai. El diagnóstico local, el registro y el monitor funcionan igual.";}
+  refresh();
 })();
 })();
 </script>
