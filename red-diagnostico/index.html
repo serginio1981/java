@@ -1,0 +1,661 @@
+<meta charset="utf-8">
+<title>Diagnóstico AiMesh Casa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: consola de diagnóstico — barra de pestañas fija arriba, contenido en una columna ancha que se divide en dos en iPad horizontal */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --sunken:#e3e8ee; --line:#cfd7e0;
+  --fg:#16212c; --muted:#5b6b7b; --accent:#0a6c93; --accent-ink:#ffffff; --accent-soft:#d6ebf3;
+  --good:#1d7a4a; --warn:#a86500; --crit:#b3261e; --good-soft:#dcf0e4; --warn-soft:#f8ead3; --crit-soft:#f7dcd9;
+  --font-display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f161d; --surface:#17212b; --sunken:#0b1117; --line:#2a3846;
+  --fg:#e3eaf1; --muted:#93a4b5; --accent:#4cb3dc; --accent-ink:#06202c; --accent-soft:#143445;
+  --good:#5fcf8f; --warn:#f0b04f; --crit:#ff8a80; --good-soft:#14301f; --warn-soft:#3a2a10; --crit-soft:#3c1715;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f161d; --surface:#17212b; --sunken:#0b1117; --line:#2a3846;
+  --fg:#e3eaf1; --muted:#93a4b5; --accent:#4cb3dc; --accent-ink:#06202c; --accent-soft:#143445;
+  --good:#5fcf8f; --warn:#f0b04f; --crit:#ff8a80; --good-soft:#14301f; --warn-soft:#3a2a10; --crit-soft:#3c1715;
+  color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:1.6rem;font-weight:700}
+h2{font-size:1.3rem;font-weight:600}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header.top{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;justify-content:space-between;padding-top:18px}
+.eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;
+  border-bottom:1px solid var(--line);padding-block:8px 0;scrollbar-width:none}
+nav.tabs a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-weight:600;padding:10px 14px;border-radius:8px 8px 0 0;border-bottom:3px solid transparent;font-size:.95rem}
+nav.tabs a[aria-current="page"]{color:var(--fg);border-bottom-color:var(--accent)}
+nav.tabs a:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section.view{display:flex;flex-direction:column;gap:20px}
+.grid2{display:grid;grid-template-columns:1fr;gap:20px}
+@media (min-width:900px){.grid2{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel.flat{background:transparent;border:none;padding:0}
+button,.btn{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;min-height:42px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+select,textarea,input[type=text]{font:inherit;color:var(--fg);background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+textarea{font-family:var(--font-mono);font-size:.82rem;line-height:1.45;min-height:220px;resize:vertical}
+label.q{display:flex;flex-direction:column;gap:6px;font-weight:500}
+label.q small{font-weight:400;color:var(--muted)}
+.qgrid{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:700px){.qgrid{grid-template-columns:1fr 1fr}}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;font-weight:500;white-space:nowrap}
+.chip.alta{background:var(--crit-soft);color:var(--crit)}
+.chip.media{background:var(--warn-soft);color:var(--warn)}
+.chip.baja{background:var(--good-soft);color:var(--good)}
+.chip.info{background:var(--accent-soft);color:var(--accent)}
+.note{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+
+/* topology */
+.topo{width:100%;height:auto;display:block}
+.topo text{font-family:var(--font-body)}
+.topo .lbl{fill:var(--fg);font-weight:600;font-size:15px}
+.topo .sub{fill:var(--muted);font-size:12px}
+.topo .mono{font-family:var(--font-mono);font-size:11px;fill:var(--muted)}
+.topo .node{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.topo .node.cloud{stroke:var(--muted)}
+.topo .link{stroke:var(--accent);stroke-width:3;fill:none}
+.topo .link.wifi{stroke-dasharray:6 6}
+.topo .link.unk{stroke:var(--muted);stroke-dasharray:2 6}
+.topo .ico{fill:var(--accent)}
+
+/* screenshot reading */
+.shot{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:640px){.shot{grid-template-columns:200px minmax(0,1fr)}}
+.shot img{width:100%;max-width:220px;border-radius:12px;border:1px solid var(--line)}
+dl.read{display:grid;grid-template-columns:1fr;gap:10px;margin:0}
+dl.read div{display:flex;flex-direction:column;gap:2px}
+dl.read dt{font-weight:600}
+dl.read dd{margin:0;color:var(--muted);font-size:.92rem}
+
+/* causes */
+ol.causes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+ol.causes li{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+ol.causes summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:14px 16px;align-items:center}
+ol.causes summary::-webkit-details-marker{display:none}
+.meter{grid-column:1/-1;height:6px;background:var(--sunken);border-radius:3px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:3px}
+.cbody{padding:0 16px 16px;display:grid;grid-template-columns:1fr;gap:12px;font-size:.93rem}
+@media (min-width:700px){.cbody{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.cbody h4{margin:0 0 4px;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.cbody ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+
+/* log */
+.findings{display:flex;flex-direction:column;gap:8px}
+.finding{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.finding .n{font-family:var(--font-mono);font-weight:500;font-size:1.1rem;min-width:2ch;text-align:right}
+.finding p{font-size:.9rem;color:var(--muted)}
+.hist{width:100%;height:auto;display:block}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.8rem}
+td,th{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--font-mono);font-weight:500;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunken)}
+td.m{font-family:var(--font-mono);white-space:nowrap}
+td.l{font-family:var(--font-mono);word-break:break-all}
+
+/* monitor */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:700px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{background:var(--sunken);border-radius:8px;padding:12px}
+.stat b{display:block;font-family:var(--font-mono);font-size:1.5rem;font-weight:500;font-variant-numeric:tabular-nums}
+.stat span{font-size:.8rem;color:var(--muted)}
+canvas.spark{width:100%;height:160px;display:block;background:var(--sunken);border-radius:8px}
+
+/* ai */
+.answer{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-height:120px;overflow-wrap:anywhere}
+.answer h3,.answer h4{margin:14px 0 6px}
+.answer h3:first-child,.answer h4:first-child{margin-top:0}
+.answer p{margin:6px 0}
+.answer ul,.answer ol{margin:6px 0;padding-left:22px}
+.answer code{font-family:var(--font-mono);font-size:.85em;background:var(--sunken);padding:1px 5px;border-radius:4px}
+.turn{border-top:1px dashed var(--line);margin-top:14px;padding-top:14px}
+.turn .who{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:.93rem}
+.check input{margin-top:4px;width:18px;height:18px}
+@media (prefers-reduced-motion:no-preference){.meter i{transition:width .4s ease}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Red doméstica · AiMesh · 2 nodos</div>
+      <h1>Diagnóstico AiMesh Casa</h1>
+    </div>
+    <p class="muted" id="engineState">Motor de reglas local activo · IA: comprobando…</p>
+  </header>
+
+  <nav class="tabs" aria-label="Secciones">
+    <a href="#resumen" data-view="resumen">Resumen</a>
+    <a href="#preguntas" data-view="preguntas">Cuestionario</a>
+    <a href="#registro" data-view="registro">Registro del router</a>
+    <a href="#monitor" data-view="monitor">Monitor en vivo</a>
+    <a href="#ia" data-view="ia">Análisis con IA</a>
+  </nav>
+
+  <!-- RESUMEN -->
+  <section class="view" id="v-resumen">
+    <div class="grid2">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <h2>Topología</h2>
+          <span class="chip info" id="bhChip">Backhaul: sin confirmar</span>
+        </div>
+        <svg class="topo" id="topo" viewBox="0 0 520 300" role="img" aria-label="Internet conectado al RT-BE50, que conecta al nodo RT-AX82U"></svg>
+        <p class="note">Línea continua = backhaul por cable · discontinua = inalámbrico · punteada = sin confirmar. Cámbialo en el Cuestionario.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Lo que dice tu captura</h2>
+        <div class="shot">
+          <img src="captura-asus.jpg" alt="Captura de la app ASUS Router a las 01:53" id="shotImg" onerror="this.hidden=true">
+          <dl class="read">
+            <div><dt>Estado: «Conectándose…»</dt><dd>Probablemente es la app estableciendo sesión con el router, no un estado del enlace a Internet. No estoy seguro de cómo lo etiqueta cada versión de la app: confírmalo abriendo la pestaña Estado cuando termine de cargar.</dd></div>
+            <div><dt>0 clientes en ambos nodos</dt><dd>Tu propio teléfono estaba conectado por Wi-Fi, así que al menos debería verse 1 cliente. Esto apunta a que la app aún no había leído los datos, no a que la red estuviera vacía.</dd></div>
+            <div><dt>Enlace verde BE50 → AX82U</dt><dd>El nodo aparece unido a la malla. La captura no deja claro si el backhaul es por cable o inalámbrico: es el dato más importante para seguir.</dd></div>
+            <div><dt>Dos SSID separados</dt><dd>«SERGIO ROOM» y «SERGIO ROOM_5G»: Smart Connect está apagado y los equipos no cambian de banda solos.</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel flat">
+      <div class="row" style="justify-content:space-between">
+        <h2>Causas probables, ordenadas</h2>
+        <span class="muted" id="basis">Basado en: cuestionario + registro de ejemplo</span>
+      </div>
+      <p class="note">Índice de sospecha calculado por reglas en tu iPad (sin conexión). No es una probabilidad: sube o baja según tus respuestas y lo que aparezca en el registro. Toca una causa para ver cómo comprobarla.</p>
+      <ol class="causes" id="causes"></ol>
+    </div>
+  </section>
+
+  <!-- PREGUNTAS -->
+  <section class="view" id="v-preguntas" hidden>
+    <div class="panel">
+      <h2>Cuestionario sobre la caída de la tarde</h2>
+      <p class="muted">Cada respuesta ajusta el ranking del Resumen al instante. «No sé» es una respuesta válida: la regla simplemente pesa menos.</p>
+      <form class="qgrid" id="qform"></form>
+    </div>
+    <div class="panel">
+      <h3>Dónde encontrar los datos en el router</h3>
+      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+        <li>Entra desde Safari a <span class="mono">http://192.168.50.1</span> o <span class="mono">http://www.asusrouter.com</span> (dirección por defecto de ASUS; puede variar si la cambiaste).</li>
+        <li><b>Tipo de backhaul y señal del nodo:</b> página AiMesh → selecciona RT-AX82U. Debería mostrar el tipo de conexión y la calidad.</li>
+        <li><b>Firmware:</b> Administración → Actualización de firmware (aparecen ambos nodos).</li>
+        <li><b>Registro:</b> Registro del sistema → Registro general. Cópialo y pégalo en la pestaña Registro.</li>
+        <li><b>Monitoreo de red:</b> WAN → Conexión a Internet → «Network Monitoring» (DNS Query / Ping).</li>
+      </ul>
+      <p class="note">Los nombres de menú cambian entre versiones de firmware y idioma. Si no encuentras uno, búscalo por la palabra clave.</p>
+    </div>
+  </section>
+
+  <!-- REGISTRO -->
+  <section class="view" id="v-registro" hidden>
+    <div class="grid2">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between">
+          <h2>Registro del sistema</h2>
+          <span class="chip media" id="logBadge">Ejemplo</span>
+        </div>
+        <p class="muted">Pega aquí el «Registro general» del RT-BE50. Se analiza en tu iPad; no sale de aquí salvo que pidas el análisis con IA.</p>
+        <textarea id="logInput" spellcheck="false" aria-label="Registro del router"></textarea>
+        <div class="row">
+          <button class="primary" id="analyzeBtn" type="button">Analizar registro</button>
+          <button id="clearBtn" type="button">Vaciar</button>
+          <label class="btn" style="display:inline-flex;align-items:center">Cargar .txt<input type="file" id="logFile" accept=".txt,.log,text/plain" hidden></label>
+        </div>
+        <p class="note">El texto inicial es un <b>registro inventado de ejemplo</b> para mostrar cómo funciona. Reemplázalo con el tuyo.</p>
+      </div>
+      <div class="panel">
+        <h2>Hallazgos</h2>
+        <svg class="hist" id="hist" viewBox="0 0 480 150" role="img" aria-label="Eventos relevantes por hora"></svg>
+        <div class="findings" id="findings"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Líneas relevantes</h3>
+      <div class="tablewrap"><table><thead><tr><th>Hora</th><th>Tipo</th><th>Línea</th></tr></thead><tbody id="logRows"></tbody></table></div>
+      <p class="note">Los patrones cubren mensajes comunes de Asuswrt (WAN, enlace físico, DFS, cambios de canal, AiMesh, roaming, reinicios). El texto exacto varía según firmware, así que algo puede quedar sin clasificar.</p>
+    </div>
+  </section>
+
+  <!-- MONITOR -->
+  <section class="view" id="v-monitor" hidden>
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h2>Monitor de conexión</h2>
+        <div class="row">
+          <button class="primary" id="pingBtn" type="button">Iniciar</button>
+          <button id="pingReset" type="button">Reiniciar datos</button>
+        </div>
+      </div>
+      <p class="muted">Mide cada segundo cuánto tarda tu iPad en recibir un archivo pequeño de este mismo sitio. Incluye Wi-Fi, malla, módem y proveedor. Úsalo caminando: primero junto al RT-BE50, luego junto al RT-AX82U.</p>
+      <div class="stats">
+        <div class="stat"><b id="sAvg">—</b><span>Latencia media (ms)</span></div>
+        <div class="stat"><b id="sJit">—</b><span>Jitter (ms)</span></div>
+        <div class="stat"><b id="sLoss">—</b><span>Pérdida (%)</span></div>
+        <div class="stat"><b id="sN">0</b><span>Muestras</span></div>
+      </div>
+      <canvas class="spark" id="spark" aria-label="Gráfico de latencia"></canvas>
+      <div class="row">
+        <label class="q" style="flex:1;min-width:200px">Ubicación de esta medición
+          <select id="pingLoc"><option>Junto al RT-BE50</option><option>Junto al RT-AX82U</option><option>Punto intermedio</option><option>Lugar donde falló</option></select>
+        </label>
+      </div>
+      <div id="pingSessions" class="findings"></div>
+      <p class="note">Referencia orientativa, no una norma: en Wi-Fi doméstico, picos frecuentes sobre ~150 ms o pérdida sobre ~1 % suelen notarse en videollamadas. La pantalla se mantiene encendida mientras mide, si Safari lo permite.</p>
+    </div>
+  </section>
+
+  <!-- IA -->
+  <section class="view" id="v-ia" hidden>
+    <div class="grid2">
+      <div class="panel">
+        <h2>Pedir análisis a Claude</h2>
+        <p class="muted">Envía el resumen de topología, tus respuestas, los hallazgos del registro y el monitor. Usa tu cuenta de Claude, así que requiere Internet; el resto de la app funciona sin ella.</p>
+        <label class="check"><input type="checkbox" id="incShot" checked> Incluir la captura de la app ASUS</label>
+        <label class="check"><input type="checkbox" id="incLog" checked> Incluir extracto del registro (últimas 150 líneas)</label>
+        <label class="check"><input type="checkbox" id="maskMac" checked> Ocultar direcciones MAC</label>
+        <label class="q">Más capturas (opcional)<small>Por ejemplo, la página AiMesh del nodo o la lista de clientes.</small>
+          <input type="file" id="extraShots" accept="image/*" multiple>
+        </label>
+        <label class="q">Nivel de análisis
+          <select id="tier"><option value="default">Estándar</option><option value="complex">Profundo (tarda más)</option></select>
+        </label>
+        <div class="row">
+          <button class="primary" id="askBtn" type="button">Analizar mi red</button>
+          <button id="stopBtn" type="button" disabled>Detener</button>
+        </div>
+        <p class="note" id="aiNote">Al primer uso, Claude te pedirá permiso para que esta página lo consulte.</p>
+      </div>
+      <div class="panel flat">
+        <div class="answer" id="answer"><p class="muted">Aquí aparecerá el análisis. Se pedirá a Claude que separe lo que sabe de lo que supone y que no invente menús ni versiones de firmware.</p></div>
+        <form class="row" id="followForm" hidden>
+          <input type="text" id="followInput" placeholder="Pregunta de seguimiento, p. ej. ¿cómo activo el backhaul Ethernet?" style="flex:1;min-width:200px">
+          <button class="primary" type="submit" id="followBtn">Enviar</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- Cuestionario ---------- */
+const QUESTIONS=[
+ {id:"backhaul",t:"¿Cómo se conecta el RT-AX82U al RT-BE50?",h:"Página AiMesh → nodo. Es el dato más determinante.",o:[["nose","No sé"],["cable","Cable Ethernet"],["wifi","Inalámbrico"]]},
+ {id:"onlyAlert",t:"¿Fue solo un aviso de la app y navegabas normal?",o:[["nose","No sé"],["si","Sí, solo el aviso"],["no","No, perdí conexión de verdad"]]},
+ {id:"allDevices",t:"¿Afectó a todos los dispositivos?",o:[["nose","No sé"],["si","Sí, a todos"],["no","Solo a algunos"]]},
+ {id:"wiredAlso",t:"¿Un equipo conectado por cable también perdió Internet?",o:[["nose","No sé / no hay"],["si","Sí"],["no","No, siguió bien"]]},
+ {id:"where",t:"¿Dónde se notó más?",o:[["nose","No sé"],["main","Cerca del RT-BE50"],["node","Cerca del RT-AX82U"],["all","En toda la casa"]]},
+ {id:"duration",t:"¿Cuánto duró?",o:[["nose","No sé"],["sec","Segundos"],["min","1 a 2 minutos"],["long","Varios minutos"],["inter","Intermitente por horas"]]},
+ {id:"band",t:"¿En qué red estaban los equipos afectados?",o:[["nose","No sé"],["24","SERGIO ROOM (2,4 GHz)"],["5","SERGIO ROOM_5G"],["both","Ambas"]]},
+ {id:"fw",t:"¿Ambos equipos tienen el último firmware?",o:[["nose","No sé"],["si","Sí, los dos"],["no","No / uno pendiente"]]},
+ {id:"netmon",t:"¿Está activo «Network Monitoring» (DNS Query o Ping)?",h:"WAN → Conexión a Internet.",o:[["nose","No sé"],["si","Sí"],["no","No"]]},
+ {id:"ispMode",t:"¿El equipo del proveedor está en modo bridge?",h:"Si la IP WAN del BE50 empieza con 192.168, 10. o 172.16–31, hay doble NAT.",o:[["nose","No sé"],["si","Sí, bridge"],["no","No, también hace de router"]]},
+ {id:"reset",t:"¿Reseteaste el RT-AX82U antes de agregarlo como nodo?",h:"Si estuvo enchufado como router, pudo repartir IP por su cuenta.",o:[["nose","No sé"],["si","Sí"],["no","No"]]},
+ {id:"oldDevices",t:"¿Hay equipos antiguos o IoT (cámaras, enchufes, TV viejas)?",o:[["nose","No sé"],["si","Sí"],["no","No"]]}
+];
+const DEFAULTS=Object.fromEntries(QUESTIONS.map(q=>[q.id,"nose"]));
+let answers=Object.assign({},DEFAULTS,store.get("answers",{}));
+function renderForm(){
+  $("#qform").innerHTML=QUESTIONS.map(q=>`<label class="q" for="q_${q.id}">${esc(q.t)}${q.h?`<small>${esc(q.h)}</small>`:""}
+   <select id="q_${q.id}" data-q="${q.id}">${q.o.map(([v,l])=>`<option value="${v}"${answers[q.id]===v?" selected":""}>${esc(l)}</option>`).join("")}</select></label>`).join("");
+  $("#qform").addEventListener("change",e=>{const id=e.target.dataset.q;if(!id)return;answers[id]=e.target.value;store.set("answers",answers);renderTopo();renderCauses();});
+}
+
+/* ---------- Topología ---------- */
+function renderTopo(){
+  const bh=answers.backhaul, cls=bh==="cable"?"":bh==="wifi"?" wifi":" unk";
+  $("#bhChip").textContent="Backhaul: "+(bh==="cable"?"cable Ethernet":bh==="wifi"?"inalámbrico":"sin confirmar");
+  $("#topo").innerHTML=`
+  <path class="link" d="M100 150 H210"/>
+  <path class="link${cls}" d="M310 150 H420"/>
+  <circle class="node cloud" cx="60" cy="150" r="40"/>
+  <text class="lbl" x="60" y="155" text-anchor="middle">WAN</text>
+  <text class="lbl" x="60" y="222" text-anchor="middle">Internet</text>
+  <text class="sub" x="60" y="240" text-anchor="middle">módem del proveedor</text>
+  <rect class="node" x="210" y="105" width="100" height="90" rx="14"/>
+  <g class="ico"><rect x="236" y="140" width="48" height="16" rx="4"/><rect x="242" y="118" width="3" height="22"/><rect x="256" y="114" width="3" height="26"/><rect x="261" y="114" width="3" height="26"/><rect x="275" y="118" width="3" height="22"/></g>
+  <text class="mono" x="260" y="180" text-anchor="middle">principal</text>
+  <text class="lbl" x="260" y="222" text-anchor="middle">RT-BE50</text>
+  <text class="sub" x="260" y="240" text-anchor="middle">Wi-Fi 7 · dormitorio · nuevo</text>
+  <rect class="node" x="420" y="105" width="90" height="90" rx="14"/>
+  <g class="ico"><rect x="443" y="140" width="44" height="16" rx="4"/><rect x="449" y="120" width="3" height="20"/><rect x="463" y="116" width="3" height="24"/><rect x="477" y="120" width="3" height="20"/></g>
+  <text class="mono" x="465" y="180" text-anchor="middle">nodo</text>
+  <text class="lbl" x="465" y="222" text-anchor="middle">RT-AX82U</text>
+  <text class="sub" x="465" y="240" text-anchor="middle">Wi-Fi 6 · comedor</text>
+  <text class="mono" x="365" y="140" text-anchor="middle">${bh==="cable"?"Ethernet":bh==="wifi"?"5 GHz":"¿?"}</text>
+  <text class="mono" x="155" y="140" text-anchor="middle">WAN</text>
+  <text class="sub" x="260" y="40" text-anchor="middle">SSID: SERGIO ROOM (2,4 GHz) · SERGIO ROOM_5G (5 GHz)</text>
+  <text class="sub" x="260" y="58" text-anchor="middle">Ambos nodos emiten los dos SSID</text>`;
+}
+
+/* ---------- Registro ---------- */
+const SAMPLE_LOG=`# EJEMPLO INVENTADO — reemplázalo con tu registro real
+Nov 15 16:58:12 kernel: eth0: link up, 1000 Mbps full duplex
+Nov 15 17:21:40 wlceventd: wlceventd_proc_event(530): eth7: Disassoc AA:BB:CC:11:22:33, status: 0, reason: Disassociated due to inactivity (4), rssi:-78
+Nov 15 17:22:03 roamast: [EXAP]Deauth old sta in 0 0: AA:BB:CC:11:22:33
+Nov 15 17:35:10 acsd: eth7: selected channel spec: 0xe06a (100/80)
+Nov 15 17:48:55 wlceventd: eth7: radar detected on channel 100
+Nov 15 17:48:56 acsd: eth7: selected channel spec: 0xe02a (36/80)
+Nov 15 17:52:31 WAN Connection: ISP's DHCP did not function properly.
+Nov 15 17:52:49 WAN Connection: WAN was restored.
+Nov 15 18:05:12 cfg_server: node AA:BB:CC:44:55:66 offline
+Nov 15 18:06:40 cfg_server: node AA:BB:CC:44:55:66 online
+Nov 15 18:10:02 wlceventd: wlceventd_proc_event(505): eth6: Deauth_ind AA:BB:CC:77:88:99, status: 0, reason: Unspecified reason (1), rssi:-81`;
+const PATTERNS=[
+ {k:"wan",label:"Eventos de conexión WAN",re:/WAN(\(\d\))?\s*Connection:|wan_?(down|up)|WAN.*(disconnect|restored|lost)/i,sev:"alta",x:"El router perdió o recuperó el enlace con el proveedor. Si coincide con la hora de la caída, el problema está del módem hacia afuera, o en el monitoreo de red."},
+ {k:"wandhcp",label:"Fallas de DHCP del proveedor",re:/ISP'?s DHCP|udhcpc.*(fail|no lease|timeout)|DHCP.*did not function/i,sev:"alta",x:"El módem o el proveedor no respondió a tiempo la renovación de IP. Típico con doble NAT o módem que se reinicia."},
+ {k:"ppp",label:"Desconexiones PPPoE",re:/pppd.*(terminat|hangup|LCP|timeout|exit)|PPPoE.*(fail|timeout)/i,sev:"alta",x:"La sesión PPPoE con el proveedor se cayó."},
+ {k:"link",label:"Enlace físico de puertos",re:/link (down|up)|Link (Down|Up)|carrier (lost|acquired)/i,sev:"media",x:"Un puerto con cable subió o bajó. Si es el puerto WAN o el del nodo, revisa el cable y el conector."},
+ {k:"dfs",label:"Radar DFS en 5 GHz",re:/radar|DFS|\bCAC\b/i,sev:"alta",x:"En canales DFS (aprox. 52–144) el router debe abandonar el canal al detectar radar. Los equipos en 5 GHz se desconectan unos segundos o minutos."},
+ {k:"acs",label:"Cambios automáticos de canal",re:/acsd.*(selected|switch|chanspec|channel)/i,sev:"media",x:"El canal automático cambió. Cada cambio corta brevemente a los clientes de esa banda."},
+ {k:"mesh",label:"Nodo AiMesh desconectado",re:/(cfg_server|cfg_client|amas|AiMesh|obd).*?(offline|disconnect|lost|fail|re-?connect)/i,sev:"alta",x:"El RT-AX82U perdió la conexión con el principal. Apunta al backhaul o a firmware desalineado."},
+ {k:"roam",label:"Expulsiones por asistente de roaming",re:/roamast|roaming assistant/i,sev:"media",x:"El asistente de roaming desconecta clientes con señal débil para que se pasen al otro nodo. Si el umbral es agresivo, se nota como cortes."},
+ {k:"deauth",label:"Desconexiones de clientes Wi-Fi",re:/Disassoc|Deauth|Deauthenticat/i,sev:"baja",x:"Algunas son normales (equipos que duermen). Muchas del mismo MAC o con RSSI bajo (< -75 dBm) indican mala cobertura."},
+ {k:"reboot",label:"Reinicios o arranques",re:/syslogd started|kernel: Linux version|start_kernel|rebooting|init: (boot|start)/i,sev:"alta",x:"El equipo arrancó. Si no lo reiniciaste tú, puede ser una actualización automática, un corte eléctrico o una falla."},
+ {k:"fw",label:"Actualización de firmware",re:/firmware|webs_update|fw_upgrade|FW upgrade/i,sev:"media",x:"Hubo actividad de firmware. Un router nuevo suele actualizarse en sus primeros días."},
+ {k:"kernel",label:"Errores del sistema",re:/out of memory|oops|panic|segfault|watchdog/i,sev:"alta",x:"Errores internos graves. Si se repiten, conviene actualizar firmware y, si siguen, reset de fábrica."},
+ {k:"dhcpnak",label:"Rechazos DHCP en la LAN",re:/DHCPNAK|DHCP.*conflict|IP.*conflict/i,sev:"media",x:"Puede haber otro servidor DHCP en la red (por ejemplo el AX82U antes de ser nodo, o el módem)."}
+];
+const MAC_RE=/\b([0-9A-F]{2}[:-]){5}[0-9A-F]{2}\b/gi;
+let logText=store.get("log",null), logIsSample=logText==null; if(logIsSample) logText=SAMPLE_LOG;
+let LF={counts:{},rows:[],hours:new Array(24).fill(0),macs:{},rssiLow:0};
+function parseLog(txt){
+  const counts={},rows=[],hours=new Array(24).fill(0),macs={};let rssiLow=0;
+  for(const raw of txt.split(/\r?\n/)){
+    const line=raw.trim(); if(!line||line.startsWith("#")) continue;
+    const hits=PATTERNS.filter(p=>p.re.test(line)); if(!hits.length) continue;
+    const tm=line.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/); const h=tm?+tm[1]:null;
+    for(const p of hits) counts[p.k]=(counts[p.k]||0)+1;
+    if(h!=null) hours[h]++;
+    if(hits.some(p=>p.k==="deauth")){const m=line.match(MAC_RE); if(m) macs[m[0].toUpperCase()]=(macs[m[0].toUpperCase()]||0)+1; const r=line.match(/rssi:?\s*(-\d+)/i); if(r&&+r[1]<=-75) rssiLow++;}
+    rows.push({t:tm?tm[0]:"—",k:hits.map(p=>p.label).join(" · "),line});
+  }
+  return {counts,rows,hours,macs,rssiLow};
+}
+function renderLog(){
+  LF=parseLog(logText);
+  $("#logBadge").textContent=logIsSample?"Ejemplo":"Tu registro";
+  $("#logBadge").className="chip "+(logIsSample?"media":"info");
+  $("#basis").textContent="Basado en: cuestionario + "+(logIsSample?"registro de ejemplo (pega el tuyo)":"tu registro");
+  const f=PATTERNS.filter(p=>LF.counts[p.k]);
+  const box=$("#findings");
+  if(!f.length){box.innerHTML=`<p class="muted">No se encontraron eventos conocidos. Revisa que pegaste el «Registro general» completo.</p>`;}
+  else box.innerHTML=f.map(p=>`<div class="finding"><span class="n">${LF.counts[p.k]}</span><div><b>${esc(p.label)}</b><p>${esc(p.x)}</p></div><span class="chip ${p.sev}">${p.sev}</span></div>`).join("")+
+    (Object.keys(LF.macs).length?`<p class="note">Clientes con más desconexiones: ${Object.entries(LF.macs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([m,n])=>`<span class="mono">${esc(m)}</span> (${n})`).join(", ")}${LF.rssiLow?` · ${LF.rssiLow} con señal ≤ -75 dBm`:""}.</p>`:"");
+  $("#logRows").innerHTML=LF.rows.slice(-300).map(r=>`<tr><td class="m">${esc(r.t)}</td><td>${esc(r.k)}</td><td class="l">${esc(r.line)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Sin líneas relevantes.</td></tr>`;
+  renderHist();
+}
+function renderHist(){
+  const H=LF.hours,max=Math.max(1,...H),W=480,top=14,base=118,bw=W/24;
+  let s=`<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="var(--line)"/>`;
+  H.forEach((v,i)=>{const h=(v/max)*(base-top);const aft=i>=13&&i<=20;
+    s+=`<rect x="${i*bw+2}" y="${base-h}" width="${bw-4}" height="${h}" rx="2" fill="${aft?"var(--warn)":"var(--accent)"}" opacity="${v?1:0}"><title>${i}:00 — ${v} eventos</title></rect>`;
+    if(i%3===0) s+=`<text x="${i*bw+bw/2}" y="136" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--font-mono)">${String(i).padStart(2,"0")}h</text>`;});
+  s+=`<text x="0" y="10" font-size="11" fill="var(--muted)" font-family="var(--font-mono)">eventos por hora · máx ${max} · tarde (13–20 h) resaltada</text>`;
+  $("#hist").innerHTML=s;
+}
+
+/* ---------- Motor de reglas ---------- */
+function causes(){
+  const a=answers,c=LF.counts,n=k=>c[k]||0;
+  const C=[];
+  const add=(id,title,base,rules,check,fix)=>{let s=base;const why=[];for(const [cond,pts,txt] of rules) if(cond){s+=pts;if(txt)why.push((pts>0?"▲ ":"▼ ")+txt);} C.push({id,title,score:Math.max(2,Math.min(95,s)),why,check,fix});};
+  add("isp","Corte o inestabilidad del proveedor (WAN)",15,[
+    [a.wiredAlso==="si",30,"También cayó un equipo por cable"],
+    [a.wiredAlso==="no",-15,"Los equipos por cable siguieron bien"],
+    [a.allDevices==="si",12,"Afectó a todos los dispositivos"],
+    [n("wan")>0,25,`${n("wan")} eventos WAN en el registro`],
+    [n("wandhcp")+n("ppp")>0,15,"Fallas de DHCP/PPPoE con el proveedor"],
+    [a.onlyAlert==="si",-10,"Solo fue un aviso"],
+  ],["Mira si los eventos WAN del registro coinciden con la hora de la caída.","Revisa las luces del módem/ONT del proveedor cuando ocurra.","Conecta un PC por cable al BE50 y repite el monitor."],["Si se repite, abre ticket con el proveedor con horas exactas del registro.","Si el módem también es router, pásalo a bridge (ver causa de doble NAT)."]);
+  add("netmon","Falsa alarma del «Network Monitoring» (DNS/Ping)",10,[
+    [a.netmon==="si",25,"Network Monitoring está activo"],
+    [a.netmon==="nose",8,"No sabes si está activo"],
+    [a.netmon==="no",-10,"Está desactivado"],
+    [a.onlyAlert==="si",30,"Viste el aviso pero navegabas normal"],
+    [a.onlyAlert==="no",-10,"Perdiste conexión de verdad"],
+    [a.wiredAlso==="no",8,"El cable siguió funcionando"],
+  ],["Revisa WAN → Conexión a Internet → Network Monitoring.","Compara la hora del aviso con el monitor y con eventos WAN reales."],["Desactiva DNS Query/Ping o cambia el destino del ping a un servidor confiable. Así el router deja de marcar «sin Internet» por una sonda fallida."]);
+  add("backhaul","Backhaul inalámbrico débil hacia el RT-AX82U",10,[
+    [a.backhaul==="wifi",30,"El nodo se conecta por Wi-Fi"],
+    [a.backhaul==="nose",10,"Tipo de backhaul sin confirmar"],
+    [a.backhaul==="cable",-15,"El nodo está por cable"],
+    [a.where==="node",25,"El problema se nota cerca del AX82U"],
+    [n("mesh")>0,20,`${n("mesh")} desconexiones del nodo en el registro`],
+    [a.where==="main",-10,"Se nota cerca del principal"],
+  ],["Página AiMesh → RT-AX82U: tipo de conexión y calidad de señal.","Usa el Monitor junto a cada nodo y compara."],["Si puedes, une los nodos con cable y activa el backhaul Ethernet.","Si no, acerca el AX82U al BE50 o deja menos obstáculos entre ellos.","Fija un canal de 5 GHz no DFS (36–48) para el backhaul."]);
+  add("dfs","Cambios de canal por radar DFS (5 GHz)",8,[
+    [n("dfs")>0,40,`${n("dfs")} eventos de radar/DFS`],
+    [n("acs")>0,12,`${n("acs")} cambios automáticos de canal`],
+    [a.band==="5",15,"Afectó a la red de 5 GHz"],
+    [a.band==="24",-8,"Afectó solo a 2,4 GHz"],
+    [a.duration==="min"||a.duration==="sec",10,"Corte corto, coherente con un cambio de canal"],
+  ],["Busca «radar» o «DFS» en el registro y compara la hora.","Mira qué canal de 5 GHz está usando el BE50 ahora."],["Usa un canal fijo de 36 a 48 y desmarca los canales DFS en Inalámbrico → General.","Cuesta algo de capacidad, pero evita los saltos."]);
+  add("fw","Firmware desalineado en malla mixta Wi-Fi 7 + Wi-Fi 6",12,[
+    [a.fw==="no",30,"Algún equipo tiene firmware pendiente"],
+    [a.fw==="nose",12,"No sabes la versión"],
+    [a.fw==="si",-10,"Ambos están al día"],
+    [n("mesh")>0,10,"El nodo se desconectó"],
+    [n("fw")>0,8,"Hubo actividad de firmware"],
+  ],["Administración → Actualización de firmware: verifica ambos nodos."],["Actualiza primero el nodo y luego el principal.","Si la malla sigue inestable, reinicia el AX82U y vuelve a agregarlo desde el BE50."]);
+  add("nat","Doble NAT o conflicto de DHCP",8,[
+    [a.ispMode==="no",20,"El equipo del proveedor también hace de router"],
+    [a.ispMode==="nose",6,"Modo del módem desconocido"],
+    [a.reset==="no",20,"El AX82U no se reseteó antes de ser nodo"],
+    [n("dhcpnak")>0,15,"Rechazos o conflictos DHCP en el registro"],
+    [n("wandhcp")>0,8,"Renovación de IP WAN fallida"],
+  ],["Mira la IP WAN del BE50: si es privada (192.168, 10., 172.16–31), hay doble NAT.","Revisa que solo el BE50 reparta IP en la casa."],["Pon el módem del proveedor en bridge, o el BE50 en su DMZ.","Si el AX82U no se reseteó, haz reset de fábrica y agrégalo de nuevo como nodo."]);
+  add("interf","Interferencia en 2,4 GHz",8,[
+    [a.band==="24",25,"Afectó a la red de 2,4 GHz"],
+    [a.band==="5",-6,"Afectó solo a 5 GHz"],
+    [a.where==="all",5,"Se notó en toda la casa"],
+    [LF.rssiLow>2,8,"Varias desconexiones con señal débil"],
+  ],["Revisa la lista de redes vecinas desde la app o un analizador Wi-Fi."],["Fija canal 1, 6 u 11 con ancho de 20 MHz en 2,4 GHz."]);
+  add("client","Compatibilidad de algunos equipos con funciones Wi-Fi 7",8,[
+    [a.allDevices==="no",25,"Solo afectó a algunos equipos"],
+    [a.allDevices==="si",-8,"Afectó a todos"],
+    [a.oldDevices==="si",15,"Hay equipos antiguos o IoT"],
+    [Object.values(LF.macs).some(v=>v>=3),10,"Un mismo equipo se desconectó varias veces"],
+  ],["Anota qué equipos fallaron y su antigüedad.","Mira en el registro si se repite el mismo MAC."],["Prueba con WPA2/WPA3 mixto en vez de solo WPA3.","Si el firmware lo permite, crea una red IoT de 2,4 GHz separada o desactiva MLO para probar.","Actualiza drivers Wi-Fi de PCs (Intel/Realtek)."]);
+  add("roam","Asistente de roaming expulsando clientes",5,[
+    [n("roam")>0,35,`${n("roam")} expulsiones por roaming`],
+    [a.allDevices==="no",5,"Solo algunos equipos"],
+    [a.where==="node",5,"Cerca del nodo"],
+  ],["Busca «roamast» en el registro."],["En Inalámbrico → Profesional, baja el umbral del asistente de roaming (p. ej. de -70 a -80 dBm) o desactívalo para probar."]);
+  add("new","Ajustes de las primeras horas de un router nuevo",10,[
+    [n("reboot")>0,25,"Hubo reinicios"],
+    [n("fw")>0,15,"Hubo actividad de firmware"],
+    [a.duration==="long",5,"Varios minutos sin servicio, típico de una actualización"],
+    [a.duration==="inter",-8,"Fue intermitente por horas"],
+  ],["Revisa si hubo un reinicio a la hora de la caída.","Mira la fecha de instalación del firmware actual."],["Si fue un único evento coincidente con una actualización, observa 48 h antes de cambiar nada."]);
+  return C.sort((x,y)=>y.score-x.score);
+}
+function level(s){return s>=55?"alta":s>=30?"media":"baja"}
+function renderCauses(){
+  const list=causes();
+  $("#causes").innerHTML=list.map((c,i)=>{const lv=level(c.score);const col=lv==="alta"?"var(--crit)":lv==="media"?"var(--warn)":"var(--good)";
+    return `<li><details${i===0?" open":""}><summary><h3>${esc(c.title)}</h3><span class="chip ${lv}">${lv} · ${c.score}</span><span class="meter"><i style="width:${c.score}%;background:${col}"></i></span></summary>
+    <div class="cbody"><div><h4>Por qué</h4>${c.why.length?`<ul>${c.why.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:`<p class="muted">Solo puntaje base. Responde el cuestionario o pega el registro.</p>`}</div>
+    <div><h4>Cómo comprobarlo</h4><ul>${c.check.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></div>
+    <div><h4>Qué hacer</h4><ul>${c.fix.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></div></div></details></li>`;}).join("");
+}
+
+/* ---------- Monitor ---------- */
+let ping={on:false,samples:[],timer:null,lock:null};
+let sessions=store.get("sessions",[]);
+function stats(arr){const ok=arr.filter(x=>x!=null);const n=arr.length;if(!n)return null;const avg=ok.length?ok.reduce((a,b)=>a+b,0)/ok.length:null;let j=0;for(let i=1;i<ok.length;i++)j+=Math.abs(ok[i]-ok[i-1]);return{n,avg,jit:ok.length>1?j/(ok.length-1):null,loss:(n-ok.length)/n*100}}
+async function onePing(){
+  const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),3000);const t0=performance.now();
+  try{const r=await fetch("ping.txt?t="+Date.now(),{cache:"no-store",signal:ctl.signal});await r.text();if(!r.ok)throw 0;ping.samples.push(performance.now()-t0);}catch(e){ping.samples.push(null);}finally{clearTimeout(to);}
+  if(ping.samples.length>600)ping.samples.shift();drawPing();
+}
+function drawPing(){
+  const s=stats(ping.samples);
+  $("#sAvg").textContent=s&&s.avg!=null?s.avg.toFixed(0):"—";$("#sJit").textContent=s&&s.jit!=null?s.jit.toFixed(0):"—";
+  $("#sLoss").textContent=s?s.loss.toFixed(1):"—";$("#sN").textContent=s?s.n:0;
+  const cv=$("#spark"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
+  const g=cv.getContext("2d");g.scale(dpr,dpr);const cs=getComputedStyle(document.documentElement);
+  const acc=cs.getPropertyValue("--accent").trim(),mut=cs.getPropertyValue("--muted").trim(),crit=cs.getPropertyValue("--crit").trim(),line=cs.getPropertyValue("--line").trim();
+  const data=ping.samples.slice(-120);const ok=data.filter(x=>x!=null);const max=Math.max(100,...ok)*1.15;const pad=28;
+  g.font="11px "+cs.getPropertyValue("--font-mono");g.fillStyle=mut;g.strokeStyle=line;g.lineWidth=1;
+  [0,.5,1].forEach(f=>{const y=H-10-(H-20)*f;g.beginPath();g.moveTo(pad,y);g.lineTo(W-6,y);g.stroke();g.fillText(Math.round(max*f),2,y+4);});
+  if(!data.length){g.fillText("Pulsa Iniciar para medir",pad+8,H/2);return;}
+  const x=i=>pad+(W-pad-6)*(i/(Math.max(119,data.length-1)));const y=v=>H-10-(H-20)*(v/max);
+  g.beginPath();let st=false;data.forEach((v,i)=>{if(v==null){st=false;return;}if(!st){g.moveTo(x(i),y(v));st=true;}else g.lineTo(x(i),y(v));});
+  g.strokeStyle=acc;g.lineWidth=2;g.stroke();
+  data.forEach((v,i)=>{if(v==null){g.fillStyle=crit;g.fillRect(x(i)-1.5,H-14,3,10);}});
+  const last=data[data.length-1];if(last!=null){g.fillStyle=acc;g.beginPath();g.arc(x(data.length-1),y(last),3.5,0,7);g.fill();}
+}
+function renderSessions(){
+  $("#pingSessions").innerHTML=sessions.slice(-6).reverse().map(s=>`<div class="finding"><span class="n">${s.avg!=null?Math.round(s.avg):"—"}</span><div><b>${esc(s.loc)}</b><p>${new Date(s.at).toLocaleString("es")} · ${s.n} muestras · jitter ${s.jit!=null?Math.round(s.jit):"—"} ms</p></div><span class="chip ${s.loss>1?"alta":s.loss>0?"media":"baja"}">${s.loss.toFixed(1)} % pérdida</span></div>`).join("");
+}
+async function togglePing(){
+  if(ping.on){clearInterval(ping.timer);ping.on=false;$("#pingBtn").textContent="Iniciar";
+    const s=stats(ping.samples);if(s&&s.n>=5){sessions.push({loc:$("#pingLoc").value,at:Date.now(),...s});sessions=sessions.slice(-20);store.set("sessions",sessions);renderSessions();}
+    try{ping.lock&&ping.lock.release();}catch(e){}ping.lock=null;return;}
+  ping.samples=[];ping.on=true;$("#pingBtn").textContent="Detener y guardar";onePing();ping.timer=setInterval(onePing,1000);
+  try{ping.lock=await navigator.wakeLock?.request("screen");}catch(e){}
+}
+
+/* ---------- IA (Claude vía capacidad sample) ---------- */
+let sample=null,turns=[],ctl=null;
+const maskIf=s=>$("#maskMac").checked?s.replace(MAC_RE,m=>m.slice(0,8)+":xx:xx:xx"):s;
+function contextText(){
+  const lbl=Object.fromEntries(QUESTIONS.map(q=>[q.id,q]));
+  const ans=QUESTIONS.map(q=>`- ${q.t} → ${q.o.find(o=>o[0]===answers[q.id])[1]}`).join("\n");
+  const fnd=PATTERNS.filter(p=>LF.counts[p.k]).map(p=>`- ${p.label}: ${LF.counts[p.k]}`).join("\n")||"- (sin eventos reconocidos)";
+  const top=causes().slice(0,5).map(c=>`- ${c.title}: índice ${c.score} (${c.why.join("; ")||"solo base"})`).join("\n");
+  const ses=sessions.slice(-6).map(s=>`- ${s.loc}: media ${s.avg!=null?Math.round(s.avg):"?"} ms, jitter ${s.jit!=null?Math.round(s.jit):"?"} ms, pérdida ${s.loss.toFixed(1)} %, ${s.n} muestras`).join("\n")||"- (sin mediciones)";
+  const logEx=$("#incLog").checked?(logIsSample?"(El registro cargado es un EJEMPLO INVENTADO; no lo trates como dato real.)\n":"")+maskIf(logText.split(/\r?\n/).slice(-150).join("\n")):"(no incluido)";
+  return `TOPOLOGÍA
+- Internet (módem del proveedor) → RT-BE50 (router principal, Wi-Fi 7, nuevo, en dormitorio) → RT-AX82U (nodo AiMesh, Wi-Fi 6, en comedor).
+- SSID separados: "SERGIO ROOM" (2,4 GHz) y "SERGIO ROOM_5G" (5 GHz).
+- Síntoma: por la tarde la app ASUS informó inestabilidad de la red. La captura de la app (01:53) muestra Estado "Conectándose..." y 0 clientes en ambos nodos.
+
+RESPUESTAS DEL USUARIO
+${ans}
+
+HALLAZGOS DEL REGISTRO (conteos por patrón)
+${fnd}
+
+RANKING DEL MOTOR DE REGLAS LOCAL
+${top}
+
+MEDICIONES DEL MONITOR (latencia iPad → servidor web)
+${ses}
+
+EXTRACTO DEL REGISTRO
+${logEx}`;
+}
+const RULES=`Eres un ingeniero de redes experto en routers ASUS con AiMesh. El usuario es ingeniero informático con experiencia; sé directo y técnico.
+Reglas obligatorias:
+1. Si no tienes certeza, dilo explícitamente ("no estoy seguro", "conviene verificar").
+2. No inventes nombres de menús, versiones de firmware, ni valores por defecto. Si mencionas un menú, aclara que el nombre puede variar según firmware.
+3. Marca cualquier número aproximado como aproximado.
+4. Separa claramente HECHOS observados en los datos de HIPÓTESIS.
+5. Si falta un dato clave, dilo y pide exactamente qué revisar.
+6. Ten en cuenta que tu conocimiento sobre firmware y la app puede estar desactualizado.
+Responde en español con estas secciones en Markdown (## para títulos, listas con -):
+## Lectura de la captura
+## Causa más probable
+## Otras hipótesis
+## Pruebas en orden (de la más barata a la más costosa)
+## Cambios recomendados
+## Lo que no se puede saber con estos datos`;
+function md(t){
+  const out=[];let list=null;
+  const inline=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  for(const raw of t.split("\n")){const l=raw.trimEnd();let m;
+    if((m=l.match(/^\s*[-*]\s+(.*)/))){if(list!=="ul"){if(list)out.push(`</${list}>`);out.push("<ul>");list="ul";}out.push(`<li>${inline(m[1])}</li>`);continue;}
+    if((m=l.match(/^\s*\d+[.)]\s+(.*)/))){if(list!=="ol"){if(list)out.push(`</${list}>`);out.push("<ol>");list="ol";}out.push(`<li>${inline(m[1])}</li>`);continue;}
+    if(list){out.push(`</${list}>`);list=null;}
+    if((m=l.match(/^#{1,2}\s+(.*)/)))out.push(`<h3>${inline(m[1])}</h3>`);
+    else if((m=l.match(/^#{3,6}\s+(.*)/)))out.push(`<h4>${inline(m[1])}</h4>`);
+    else if(l.trim())out.push(`<p>${inline(l)}</p>`);}
+  if(list)out.push(`</${list}>`);return out.join("");
+}
+const ERR={not_granted:"No se dio permiso para usar Claude en esta página. El análisis local sigue disponible.",sampling_disabled:"Claude no está disponible para esta cuenta.",rate_limited:"Demasiadas consultas seguidas o límite de uso alcanzado. Intenta de nuevo en unos minutos.",session_expired:"Tu sesión de Claude expiró. Vuelve a iniciar sesión y reintenta.",image_rejected:"Una de las imágenes no se pudo usar. Prueba con otra captura.",prompt_too_large:"Demasiado texto. Desmarca el extracto del registro y reintenta.",refused:"Claude no respondió a esta consulta. Cambia el contenido y reintenta.",images_unavailable:"Esta vista no permite enviar imágenes. Desmarca las capturas y reintenta."};
+async function images(){
+  const out=[];
+  if($("#incShot").checked){try{const r=await fetch("captura-asus.jpg");if(r.ok)out.push(await r.blob());}catch(e){}}
+  for(const f of $("#extraShots").files)out.push(f);
+  if(!out.length)return undefined;
+  const lim=await sample.limits().catch(()=>null);
+  if(!lim||!lim.images)return undefined;
+  return out.slice(0,lim.images.maxCount);
+}
+function renderTurns(live){
+  const box=$("#answer");let h="";
+  turns.forEach((t,i)=>{if(i===0)return;if(t.role==="user")h+=`<div class="turn"><div class="who">Tu pregunta</div><p>${esc(t.content)}</p></div>`;else h+=`<div class="${i>1?"turn":""}">${i>1?'<div class="who">Claude</div>':""}${md(t.content)}</div>`;});
+  if(live!=null)h+=`<div class="${turns.length>1?"turn":""}">${turns.length>1?'<div class="who">Claude</div>':""}${live?md(live):'<p class="muted">Pensando… (el primer texto puede tardar hasta un minuto)</p>'}</div>`;
+  box.innerHTML=h||box.innerHTML;
+}
+async function run(isFollow){
+  if(!sample)return;ctl=new AbortController();
+  $("#askBtn").disabled=true;$("#followBtn").disabled=true;$("#stopBtn").disabled=false;$("#aiNote").textContent="Consultando a Claude…";
+  renderTurns("");
+  try{
+    const opts={signal:ctl.signal,cache:false,modelTier:$("#tier").value,onText:({text})=>renderTurns(text)};
+    if(!isFollow){const im=await images();if(im)opts.images=im;}
+    const {text,truncated}=await sample(turns,opts);
+    turns.push({role:"assistant",content:text});renderTurns();
+    $("#aiNote").textContent=truncated?"La respuesta se cortó por largo. Pide una sección a la vez.":"Listo. Puedes hacer preguntas de seguimiento.";
+    $("#followForm").hidden=false;
+  }catch(e){
+    if(e&&e.text){turns.push({role:"assistant",content:e.text+"\n\n_(respuesta interrumpida)_"});}else turns.pop();
+    renderTurns();
+    $("#aiNote").textContent=e&&e.code==="cancelled"?"Detenido.":(ERR[e&&e.code]||"Hubo un problema de conexión con Claude. Puedes reintentar.");
+    if(e&&(e.code==="not_granted"||e.code==="sampling_disabled")){$("#askBtn").hidden=true;$("#followForm").hidden=true;}
+  }finally{$("#askBtn").disabled=false;$("#followBtn").disabled=false;$("#stopBtn").disabled=true;}
+}
+
+/* ---------- Navegación ---------- */
+const VIEWS=["resumen","preguntas","registro","monitor","ia"];
+function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"resumen";
+  VIEWS.forEach(x=>{$("#v-"+x).hidden=x!==v;});document.querySelectorAll("nav.tabs a").forEach(a=>{if(a.dataset.view===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
+  if(v==="monitor")drawPing();}
+
+/* ---------- Arranque ---------- */
+renderForm();renderTopo();
+$("#logInput").value=logText;renderLog();renderCauses();renderSessions();
+$("#analyzeBtn").onclick=()=>{logText=$("#logInput").value;logIsSample=logText.trim()===SAMPLE_LOG.trim();store.set("log",logIsSample?null:logText);renderLog();renderCauses();};
+$("#clearBtn").onclick=()=>{$("#logInput").value="";$("#logInput").focus();};
+$("#logFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("#logInput").value=r.result;$("#analyzeBtn").click();};r.readAsText(f);};
+$("#pingBtn").onclick=togglePing;$("#pingReset").onclick=()=>{sessions=[];store.set("sessions",[]);ping.samples=[];renderSessions();drawPing();};
+$("#stopBtn").onclick=()=>ctl&&ctl.abort();
+$("#askBtn").onclick=()=>{turns=[{role:"user",content:RULES+"\n\nDATOS:\n"+contextText()+"\n\nSi se adjunta una imagen, es la captura de la app ASUS Router (y capturas adicionales del usuario)."}];run(false);};
+$("#followForm").addEventListener("submit",e=>{e.preventDefault();const q=$("#followInput").value.trim();if(!q)return;$("#followInput").value="";turns.push({role:"user",content:q});turns=[turns[0],...turns.slice(1).slice(-10)];run(true);});
+window.addEventListener("hashchange",route);route();window.addEventListener("resize",()=>{if(!$("#v-monitor").hidden)drawPing();});
+(async()=>{
+  sample=window.claude&&window.claude.use?await window.claude.use("sample").catch(()=>null):null;
+  $("#engineState").textContent="Motor de reglas local activo · IA: "+(sample?"disponible":"no disponible en esta vista");
+  if(!sample){$("#askBtn").disabled=true;$("#aiNote").textContent="La IA solo funciona abierta desde claude.ai. El diagnóstico local, el registro y el monitor funcionan igual.";}
+})();
+})();
+</script>
