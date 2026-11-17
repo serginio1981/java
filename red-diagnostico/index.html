@@ -187,6 +187,22 @@ canvas.spark{width:100%;height:160px;display:block;background:var(--sunken);bord
 .turn .who{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .check{display:flex;gap:8px;align-items:flex-start;font-size:.93rem}
 .check input{margin-top:4px;width:18px;height:18px}
+/* canales */
+.cmd{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.cmd code{flex:1 1 260px;min-width:0;font-family:var(--font-mono);font-size:.9rem;background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-wrap:anywhere;user-select:all}
+ol.howto{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.recs{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:760px){.recs{grid-template-columns:1fr 1fr}}
+.rec{display:flex;flex-direction:column;gap:8px}
+.bigch{font-family:var(--font-display);font-size:2.6rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.bigch small{font-family:var(--font-body);font-size:.95rem;font-weight:500;color:var(--muted);margin-left:6px}
+.chart{width:100%;height:auto;display:block}
+.chartwrap{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.scanlist{display:flex;flex-wrap:wrap;gap:8px}
+td.own{color:var(--accent);font-weight:600}
 @media (prefers-reduced-motion:no-preference){.meter i,.progress i{transition:width .4s ease}}
 </style>
 
@@ -378,6 +394,87 @@ canvas.spark{width:100%;height:160px;display:block;background:var(--sunken);bord
         </div>
       </section>
 
+      <!-- OPTIMIZAR › CANALES -->
+      <section class="view" id="v-canales" hidden>
+        <div class="grid2">
+          <div class="panel">
+            <h3>1. Escanea desde un PC con Windows</h3>
+            <ol class="howto">
+              <li>Lleva el notebook junto al RT-BE50 (dormitorio).</li>
+              <li>Abre el menú Wi-Fi de la barra de tareas unos segundos: eso obliga a Windows a buscar redes de nuevo.</li>
+              <li>Abre <b>Terminal</b> o <b>PowerShell</b> (tecla Windows + X → Terminal), pega este comando y pulsa Enter. Copia el resultado al portapapeles; no muestra nada en pantalla.</li>
+            </ol>
+            <div class="cmd"><code id="cmdText">netsh wlan show networks mode=bssid | clip</code><button type="button" id="copyCmd">Copiar</button></div>
+            <ol class="howto" start="4">
+              <li>Abre esta misma app en el navegador del PC y pega (Ctrl + V) en el cuadro de la derecha.</li>
+              <li>Repite junto al RT-AX82U (comedor) y agrégalo como otro escaneo.</li>
+            </ol>
+            <p class="note">Si Windows responde con un error de permisos de ubicación, activa Configuración → Privacidad y seguridad → Ubicación, y permite el acceso a las apps de escritorio. En versiones recientes de Windows 11 este comando lo exige; no estoy seguro de que aplique a todas las versiones. Desde el iPad no se puede escanear: iOS no permite que ninguna app ni web lea las redes vecinas.</p>
+          </div>
+          <div class="panel">
+            <div class="row" style="justify-content:space-between">
+              <h3>2. Pega el resultado</h3>
+              <span class="chip media" id="scanBadge">Ejemplo</span>
+            </div>
+            <label class="q">Dónde hiciste este escaneo
+              <select id="scanLoc"><option>Junto al RT-BE50 (dormitorio)</option><option>Junto al RT-AX82U (comedor)</option><option>Otro lugar del depto</option></select>
+            </label>
+            <textarea id="scanInput" spellcheck="false" style="min-height:180px" placeholder="Pega aquí lo que copió el comando (Ctrl + V)" aria-label="Resultado del escaneo"></textarea>
+            <div class="row">
+              <button class="primary" type="button" id="addScan">Agregar escaneo</button>
+              <button type="button" id="clearScans">Borrar escaneos</button>
+            </div>
+            <p class="note" id="scanMsg">Se muestran datos de un <b>escaneo inventado de ejemplo</b> hasta que agregues el tuyo.</p>
+            <div class="scanlist" id="scanList"></div>
+            <label class="q">Tus redes (para no contarlas como vecinas)<small>Separadas por coma. Las redes ocultas de tu propia malla se detectan por su dirección MAC.</small>
+              <input type="text" id="ownNames">
+            </label>
+          </div>
+        </div>
+
+        <div class="recs" id="recs"></div>
+
+        <div class="panel">
+          <div class="row" style="justify-content:space-between"><h3>2,4 GHz: qué canales ocupan tus vecinos</h3><span class="muted" id="n24"></span></div>
+          <div class="chartwrap"><svg class="chart" id="chart24" viewBox="0 0 640 230" role="img" aria-label="Redes vecinas en 2,4 GHz por canal e intensidad"></svg></div>
+          <div class="legend"><span><i style="background:var(--muted);opacity:.5"></i>Red vecina</span><span><i style="background:var(--accent)"></i>Tu red</span><span><i style="background:var(--good);opacity:.35"></i>Canal recomendado</span></div>
+        </div>
+        <div class="panel">
+          <div class="row" style="justify-content:space-between"><h3>5 GHz: qué bloques de 80 MHz están ocupados</h3><span class="muted" id="n5"></span></div>
+          <div class="chartwrap"><svg class="chart" id="chart5" viewBox="0 0 640 230" role="img" aria-label="Redes vecinas en 5 GHz por canal e intensidad"></svg></div>
+          <div class="legend"><span><i style="background:var(--muted);opacity:.5"></i>Red vecina (canal principal)</span><span><i style="background:var(--accent)"></i>Tu red</span><span><i style="background:var(--warn);opacity:.25"></i>Bloque DFS (radar)</span><span><i style="background:var(--good);opacity:.35"></i>Bloque recomendado</span></div>
+          <p class="note">Windows no informa el ancho de canal de los vecinos. La app supone 80 MHz en 5 GHz, lo más habitual en routers actuales, y suma cada red a su bloque completo.</p>
+        </div>
+        <div class="panel">
+          <h3>Todas las redes detectadas</h3>
+          <div class="tablewrap"><table><thead><tr><th>Red</th><th>Banda</th><th>Canal</th><th>Señal</th><th>Radio</th><th>Visto en</th></tr></thead><tbody id="netRows"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- OPTIMIZAR › FIJAR -->
+      <section class="view" id="v-fijar" hidden>
+        <div class="recs" id="fixVals"></div>
+        <div class="panel">
+          <h3>Paso a paso en el RT-BE50</h3>
+          <ol class="howto">
+            <li>Desde un equipo conectado a tu red, entra a <span class="mono">http://192.168.50.1</span> o <span class="mono">http://www.asusrouter.com</span>.</li>
+            <li>Ve a <b>Inalámbrico → General</b>. Como usas dos nombres de red separados, cada banda se configura por su cuenta.</li>
+            <li>Elige la banda <b>2,4 GHz</b>: en «Canal de control» pon el canal recomendado y en «Ancho de banda del canal» elige <b>20 MHz</b>. En un edificio, 40 MHz en 2,4 GHz suele empeorar las cosas.</li>
+            <li>Elige la banda <b>5 GHz</b>: pon el canal de control recomendado y ancho de <b>80 MHz</b>. Si aparece la casilla para incluir canales DFS en la selección automática, desmárcala.</li>
+            <li>Pulsa <b>Aplicar</b>. El Wi-Fi se corta unos segundos y los equipos se reconectan solos.</li>
+          </ol>
+          <p class="note">Los nombres de las opciones cambian según el firmware y el idioma; no tengo confirmado el texto exacto en tu versión. En AiMesh, el RT-AX82U debería seguir el canal del principal, sobre todo si se conecta por Wi-Fi. Revísalo en la página AiMesh después de aplicar.</p>
+        </div>
+        <div class="panel">
+          <h3>Después de fijar el canal</h3>
+          <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+            <li>Mide en <a href="#monitor">Monitor en vivo</a> junto a cada nodo y compara con las mediciones de antes.</li>
+            <li>Vuelve a escanear en 1 o 2 días y a otra hora (noche o fin de semana). Los vecinos que usan canal automático se mueven, y un canal libre hoy puede no estarlo mañana.</li>
+            <li>Si empeora, vuelve el canal a «Automático»: es el mismo menú.</li>
+          </ul>
+        </div>
+      </section>
+
       <!-- AYUDA › GUÍA -->
       <section class="view" id="v-guia" hidden>
         <div class="panel">
@@ -416,6 +513,9 @@ const NAV=[
    {id:"registro",label:"Registro del router",lead:"El dato más objetivo: lo que el RT-BE50 anotó durante la tarde."},
    {id:"hallazgos",label:"Hallazgos del registro",lead:"Eventos reconocidos en el registro, agrupados y por hora."},
    {id:"monitor",label:"Monitor en vivo",lead:"Mide latencia y pérdida caminando por la casa: primero junto al RT-BE50, luego junto al RT-AX82U."}]},
+ {id:"opt",label:"Optimizar canal",items:[
+   {id:"canales",label:"Canales vecinos",lead:"Qué canales usan los departamentos de al lado y cuál te conviene fijar en lugar de dejarlo en automático."},
+   {id:"fijar",label:"Fijar en el router",lead:"Los valores recomendados y dónde ponerlos en el RT-BE50."}]},
  {id:"ia",label:"Asistente IA",items:[
    {id:"analizar",label:"Analizar con Claude",lead:"Envía lo reunido a Claude para una segunda opinión razonada."}]},
  {id:"ayuda",label:"Ayuda",items:[
@@ -538,7 +638,7 @@ function renderHist(){
   const H=LF.hours,max=Math.max(1,...H),W=480,top=14,base=118,bw=W/24;
   let s=`<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="var(--line)"/>`;
   H.forEach((v,i)=>{const h=(v/max)*(base-top);const aft=i>=13&&i<=20;
-    s+=`<rect x="${i*bw+2}" y="${base-h}" width="${bw-4}" height="${h}" rx="2" fill="${aft?"var(--warn)":"var(--accent)"}" opacity="${v?1:0}"><title>${i}:00 — ${v} eventos</title></rect>`;
+    s+=`<rect x="${i*bw+2}" y="${base-h}" width="${bw-4}" height="${h}" rx="2" style="fill:${aft?"var(--warn)":"var(--accent)"};opacity:${v?1:0}"><title>${i}:00 — ${v} eventos</title></rect>`;
     if(i%3===0) s+=`<text x="${i*bw+bw/2}" y="136" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--font-mono)">${String(i).padStart(2,"0")}h</text>`;});
   s+=`<text x="0" y="10" font-size="11" fill="var(--muted)" font-family="var(--font-mono)">eventos por hora · máx ${max} · tarde (13–20 h) resaltada</text>`;
   $("#hist").innerHTML=s;
@@ -599,6 +699,8 @@ function causes(){
     [a.band==="5",-6,"Afectó solo a 5 GHz"],
     [a.where==="all",5,"Se notó en toda la casa"],
     [LF.rssiLow>2,8,"Varias desconexiones con señal débil"],
+    [!!SC&&!scanIsSample&&SC.strong24>=4,15,SC?`${SC.strong24} redes vecinas fuertes en 2,4 GHz`:""],
+    [!!SC&&!scanIsSample&&SC.ownOn24&&SC.ownOn24.sc>0.4,10,"Tu canal de 2,4 GHz está compartido con vecinos fuertes"],
   ],["Revisa la lista de redes vecinas desde la app o un analizador Wi-Fi."],["Fija canal 1, 6 u 11 con ancho de 20 MHz en 2,4 GHz."]);
   add("client","Compatibilidad de algunos equipos con funciones Wi-Fi 7",8,[
     [a.allDevices==="no",25,"Solo afectó a algunos equipos"],
@@ -640,6 +742,7 @@ function progressModel(){
     {id:"red",label:"Confirmar la configuración",detail:touched.backhaul?`${rDone} de ${totalIn("red")} · backhaul confirmado`:`${rDone} de ${totalIn("red")} · falta el backhaul`,st:rDone>=totalIn("red")?"done":rDone?"part":"todo",w:rDone/totalIn("red")},
     {id:"registro",label:"Pegar el registro del router",detail:logIsSample?"Usando el ejemplo":"Registro real cargado",st:logIsSample?"todo":"done",w:logIsSample?0:1},
     {id:"monitor",label:"Medir junto a cada nodo",detail:sessions.length?`${locs.size} ${locs.size===1?"lugar medido":"lugares medidos"}`:"Sin mediciones",st:both?"done":sessions.length?"part":"todo",w:both?1:sessions.length?.5:0},
+    {id:"canales",label:"Escanear canales vecinos",detail:scanIsSample?"Usando el ejemplo":`${scans.length} ${scans.length===1?"escaneo":"escaneos"} · ${SC?SC.nb.length:0} redes vecinas`,st:scanIsSample?"todo":scans.length>=2?"done":"part",w:scanIsSample?0:scans.length>=2?1:.5},
     {id:"analizar",label:"Pedir segunda opinión a la IA",detail:aiDone?"Análisis recibido":sample?"Disponible":"Solo en claude.ai",st:aiDone?"done":"todo",w:aiDone?1:0}
   ];
 }
@@ -651,6 +754,7 @@ function nextStep(P){
     red:["Completa la configuración de red","Firmware, modo del módem y Network Monitoring explican muchas falsas alarmas.","Completar"],
     registro:["Pega el registro del router","Es la evidencia objetiva de lo que pasó en la tarde, con hora exacta.","Pegar registro"],
     monitor:["Mide junto a cada nodo","Compara latencia y pérdida cerca del RT-BE50 y cerca del RT-AX82U para ubicar el tramo débil.","Abrir monitor"],
+    canales:["Escanea los canales de tus vecinos","Desde un PC con Windows ves qué canales usan los departamentos de al lado y cuál conviene fijar en el router.","Escanear vecinos"],
     analizar:["Pide una segunda opinión","Claude revisa todo lo reunido, incluida tu captura, y propone pruebas en orden.","Analizar con Claude"]}[p.id];
   return {go:p.id,title:T[0],text:T[1],cta:T[2]};
 }
@@ -682,6 +786,8 @@ function badgeFor(id,P,list){
     case "hallazgos":{const k=PATTERNS.filter(p=>LF.counts[p.k]).length;return [String(k),k?"":""];}
     case "monitor":return ping.on?["midiendo","crit"]:sessions.length?[String(sessions.length),"ok"]:["",""];
     case "analizar":return aiDone?["listo","ok"]:["",""];
+    case "canales":return scanIsSample?["ejemplo","warn"]:[`${scans.length}`,"ok"];
+    case "fijar":return SC&&SC.best24&&SC.best5?[`${SC.best24.c} · ${SC.best5.prim}`,scanIsSample?"warn":"ok"]:["",""];
   }
   return ["",""];
 }
@@ -699,6 +805,7 @@ function renderNav(P,list){
   const act=$("#subTabs a[aria-current]");if(act&&act.scrollIntoView)act.scrollIntoView({block:"nearest",inline:"nearest"});
 }
 function refresh(){
+  analyzeScan();renderScan();
   ["sintoma","red"].forEach(g=>{const e=$("#qcount-"+g);if(e){const d=answeredIn(g),t=totalIn(g);e.textContent=`${d} de ${t} respondidas`;e.className="badge"+(d>=t?" ok":"");}});
   const list=causes();renderTopo();renderCauses(list);const P=renderDash(list);renderNav(P,list);
 }
@@ -774,6 +881,11 @@ ${top}
 MEDICIONES DEL MONITOR (latencia iPad → servidor web)
 ${ses}
 
+CANALES (escaneo de vecinos desde Windows${scanIsSample?"; ES UN EJEMPLO INVENTADO, no dato real":""})
+- Redes vecinas: ${SC.nb24.length} en 2,4 GHz (${SC.strong24} con señal ≥ 50 %), ${SC.nb5.length} en 5 GHz.
+- Tu red actual: 2,4 GHz canal ${SC.own24?SC.own24.ch:"?"} · 5 GHz canal ${SC.own5?SC.own5.ch:"?"}.
+- Recomendación local: 2,4 GHz canal ${SC.best24.c} (20 MHz) · 5 GHz canal ${SC.best5.prim} (80 MHz, bloque ${SC.best5.a}-${SC.best5.b}).
+
 EXTRACTO DEL REGISTRO
 ${logEx}`;
 }
@@ -839,6 +951,129 @@ async function run(isFollow){
     if(e&&(e.code==="not_granted"||e.code==="sampling_disabled")){$("#askBtn").hidden=true;$("#followForm").hidden=true;}
   }finally{$("#askBtn").disabled=false;$("#followBtn").disabled=false;$("#stopBtn").disabled=true;}
 }
+
+/* ---------- Canales vecinos ---------- */
+const SAMPLE_NETS=[
+ ["SERGIO ROOM","10:7c:61:a0:00:01",92,"2.4",6,"802.11be"],["SERGIO ROOM_5G","10:7c:61:a0:00:05",88,"5",100,"802.11be"],
+ ["","10:7c:61:a0:00:09",60,"5",100,"802.11ax"],
+ ["Depto-301","aa:bb:cc:00:01:01",70,"2.4",1,"802.11n"],["Depto-501","aa:bb:cc:00:02:01",64,"2.4",6,"802.11ax"],
+ ["Red-Invitados","aa:bb:cc:00:03:01",55,"2.4",6,"802.11n"],["Depto-402","aa:bb:cc:00:04:01",52,"2.4",1,"802.11ax"],
+ ["Vecino-2G","aa:bb:cc:00:05:01",45,"2.4",3,"802.11n"],["CasaLopez","aa:bb:cc:00:06:01",38,"2.4",11,"802.11n"],
+ ["Oficina-12","aa:bb:cc:00:07:01",30,"2.4",11,"802.11ac"],
+ ["Depto-301_5G","aa:bb:cc:00:01:05",58,"5",36,"802.11ac"],["Depto-501_5G","aa:bb:cc:00:02:05",40,"5",44,"802.11ax"],
+ ["Depto-402-5G","aa:bb:cc:00:04:05",30,"5",36,"802.11ax"],["Vecino-5G","aa:bb:cc:00:05:05",35,"5",149,"802.11ac"]];
+function sampleText(){let i=0,out="Nombre de interfaz : Wi-Fi\nHay "+SAMPLE_NETS.length+" redes actualmente visibles.\n";
+  for(const [ss,bs,sg,bd,ch,rd] of SAMPLE_NETS){i++;out+=`\nSSID ${i} : ${ss}\n    Tipo de red             : Infraestructura\n    Autenticación           : WPA2-Personal\n    BSSID 1                 : ${bs}\n         Señal              : ${sg}%\n         Tipo de radio      : ${rd}\n         Banda              : ${bd} GHz\n         Canal              : ${ch}\n`;}
+  return out;}
+function parseNetsh(txt){
+  const nets=[];let ssid=null,auth="",cur=null;
+  for(const raw of String(txt).split(/\r?\n/)){
+    const m=raw.match(/^\s*([^:]+?)\s*:\s*(.*)$/);if(!m)continue;
+    const label=m[1].trim(),val=m[2].trim();
+    if(/^SSID\s+\d+$/i.test(label)){ssid=val;auth="";cur=null;continue;}
+    if(/^BSSID\s+\d+$/i.test(label)){cur={ssid:ssid||"",bssid:val.toLowerCase(),signal:null,ch:null,band:null,radio:"",auth};nets.push(cur);continue;}
+    if(/^(Authentication|Autenticaci)/i.test(label)){auth=val;continue;}
+    if(!cur)continue;
+    if(/^\d+\s*%$/.test(val))cur.signal=parseInt(val,10);
+    else if(/^(Channel|Canal)$/i.test(label))cur.ch=parseInt(val,10);
+    else if(/^(Band|Banda)$/i.test(label))cur.band=/^6/.test(val)?"6":/^5/.test(val)?"5":"2.4";
+    else if(/^(Radio type|Tipo de radio)$/i.test(label))cur.radio=val;
+  }
+  return nets.filter(n=>Number.isFinite(n.ch)&&n.signal!=null).map(n=>({...n,band:n.band||(n.ch<=14?"2.4":"5")}));
+}
+let scans=store.get("scans",null),scanIsSample=!Array.isArray(scans)||!scans.length;
+if(scanIsSample)scans=[{loc:"Ejemplo",at:Date.now(),nets:parseNetsh(sampleText())}];
+let ownNames=store.get("ownNames","SERGIO ROOM, SERGIO ROOM_5G");
+let SC=null;
+const sigW=s=>Math.pow((s||0)/100,2);
+const BLOCKS5=[{a:36,b:48,dfs:false},{a:52,b:64,dfs:true},{a:100,b:112,dfs:true},{a:116,b:128,dfs:true},{a:132,b:144,dfs:true},{a:149,b:161,dfs:false}];
+const CH5=[36,40,44,48,52,56,60,64,100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165];
+function analyzeScan(){
+  const map=new Map();
+  for(const sc of scans)for(const n of sc.nets){const k=n.bssid;const prev=map.get(k);
+    if(!prev||n.signal>prev.signal)map.set(k,{...n,locs:new Set([...(prev?prev.locs:[]),sc.loc])});else prev.locs.add(sc.loc);}
+  const all=[...map.values()];
+  const names=new Set(ownNames.split(",").map(x=>x.trim().toLowerCase()).filter(Boolean));
+  const ownB=all.filter(n=>names.has(n.ssid.toLowerCase())).map(n=>n.bssid.split(":").slice(1,5).join(":"));
+  all.forEach(n=>{n.own=names.has(n.ssid.toLowerCase())||(n.ssid===""&&ownB.includes(n.bssid.split(":").slice(1,5).join(":")));});
+  const nb=all.filter(n=>!n.own);
+  const nb24=nb.filter(n=>n.band==="2.4"),nb5=nb.filter(n=>n.band==="5");
+  const score24=c=>{let sc=0,cnt=0;for(const n of nb24){const d=Math.abs(c-n.ch);if(d<5){sc+=(1-d/5)*sigW(n.signal);cnt++;}}return{c,sc,cnt};};
+  const r24=[1,6,11].map(score24).sort((a,b)=>a.sc-b.sc);
+  const r5=BLOCKS5.map(B=>{let sc=0,cnt=0;const per={};for(let c=B.a;c<=B.b;c+=4)per[c]=0;
+    for(const n of nb5)if(n.ch>=B.a&&n.ch<=B.b){sc+=sigW(n.signal);cnt++;if(per[n.ch]!=null)per[n.ch]+=sigW(n.signal);}
+    const prim=+Object.entries(per).sort((x,y)=>x[1]-y[1]||x[0]-y[0])[0][0];return{...B,sc,cnt,prim};}).sort((x,y)=>x.sc-y.sc);
+  const nonDfs=r5.filter(b=>!b.dfs);
+  const own24=all.find(n=>n.own&&n.band==="2.4"),own5=all.find(n=>n.own&&n.band==="5"&&n.ssid);
+  SC={all,nb,nb24,nb5,r24,r5,best24:r24[0],best5:nonDfs[0],alt5:nonDfs[1],bestDfs:r5.find(b=>b.dfs),
+    strong24:nb24.filter(n=>n.signal>=50).length,own24,own5,ownOn24:own24?score24(own24.ch):null,
+    ownBlock5:own5?r5.find(b=>own5.ch>=b.a&&own5.ch<=b.b):null};
+}
+const loadLabel=sc=>sc<0.15?["baja","baja"]:sc<0.5?["media","media"]:["alta","alta"];
+function chart24(){
+  const L=36,R=628,T=16,B=196,x=c=>L+(c+2.5)*(R-L)/18,y=s=>B-s/100*(B-T);
+  let s="";
+  [0,50,100].forEach(v=>{s+=`<line x1="${L}" y1="${y(v)}" x2="${R}" y2="${y(v)}" style="stroke:var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" style="fill:var(--muted);font-family:var(--font-mono)">${v}%</text>`;});
+  if(SC.best24){const c=SC.best24.c;s+=`<rect x="${x(c-0.5)}" y="${T}" width="${x(c+0.5)-x(c-0.5)}" height="${B-T}" style="fill:var(--good);opacity:.18"/><text x="${x(c)}" y="${T+12}" text-anchor="middle" font-size="11" style="fill:var(--good);font-weight:600">recomendado</text>`;}
+  const nets=SC.all.filter(n=>n.band==="2.4").sort((a,b)=>a.own-b.own||b.signal-a.signal);
+  for(const n of nets){const yy=y(n.signal),cy=2*yy-B,col=n.own?"var(--accent)":"var(--muted)";
+    s+=`<path d="M${x(n.ch-2.2)} ${B} Q${x(n.ch)} ${cy} ${x(n.ch+2.2)} ${B}" style="fill:${col};fill-opacity:${n.own?.18:.08};stroke:${col};stroke-width:${n.own?2.5:1.2}"><title>${esc(n.ssid||"(oculta)")} · canal ${n.ch} · ${n.signal}%</title></path>`;
+    if(n.own)s+=`<text x="${x(n.ch)}" y="${yy-6}" text-anchor="middle" font-size="11" style="fill:var(--accent);font-weight:600">${esc(n.ssid)}</text>`;}
+  for(let c=1;c<=13;c++)s+=`<text x="${x(c)}" y="${B+16}" text-anchor="middle" font-size="11" style="fill:${[1,6,11].includes(c)?"var(--fg)":"var(--muted)"};font-family:var(--font-mono);font-weight:${[1,6,11].includes(c)?600:400}">${c}</text>`;
+  s+=`<text x="${R}" y="${B+30}" text-anchor="end" font-size="11" style="fill:var(--muted)">canal · altura = intensidad de señal</text>`;
+  $("#chart24").innerHTML=s;$("#n24").textContent=`${SC.nb24.length} redes vecinas`;
+}
+function chart5(){
+  const L=36,R=628,T=16,B=196,slots=CH5.length+2,step=(R-L)/slots;
+  const idx=c=>{const i=CH5.indexOf(c);return i<0?null:i+(i>=8?1:0)+(i>=20?1:0);};
+  const x=c=>L+(idx(c)+0.5)*step,y=s=>B-s/100*(B-T);
+  let s="";
+  [0,50,100].forEach(v=>{s+=`<line x1="${L}" y1="${y(v)}" x2="${R}" y2="${y(v)}" style="stroke:var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" style="fill:var(--muted);font-family:var(--font-mono)">${v}%</text>`;});
+  for(const Bk of BLOCKS5){const x0=x(Bk.a)-step/2,x1=x(Bk.b)+step/2,rec=SC.best5&&SC.best5.a===Bk.a;
+    if(rec||Bk.dfs)s+=`<rect x="${x0}" y="${T}" width="${x1-x0}" height="${B-T}" style="fill:${rec?"var(--good)":"var(--warn)"};opacity:${rec?.18:.1}"/>`;
+    s+=`<text x="${(x0+x1)/2}" y="${T+12}" text-anchor="middle" font-size="11" style="fill:${rec?"var(--good)":"var(--muted)"};font-weight:${rec?600:400}">${rec?"recomendado":Bk.dfs?"DFS":"sin DFS"}</text>`;}
+  const nets=SC.all.filter(n=>n.band==="5"&&idx(n.ch)!=null).sort((a,b)=>a.own-b.own);
+  for(const n of nets){const col=n.own?"var(--accent)":"var(--muted)";
+    s+=`<rect x="${x(n.ch)-step*0.3}" y="${y(n.signal)}" width="${step*0.6}" height="${B-y(n.signal)}" rx="2" style="fill:${col};opacity:${n.own?.9:.35}"><title>${esc(n.ssid||"(oculta)")} · canal ${n.ch} · ${n.signal}%</title></rect>`;}
+  CH5.forEach(c=>{s+=`<text x="${x(c)}" y="${B+16}" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--font-mono)">${c}</text>`;});
+  s+=`<text x="${R}" y="${B+30}" text-anchor="end" font-size="11" style="fill:var(--muted)">canal principal · altura = intensidad de señal</text>`;
+  $("#chart5").innerHTML=s;$("#n5").textContent=`${SC.nb5.length} redes vecinas`;
+}
+function recCards(forFix){
+  const b24=SC.best24,b5=SC.best5,o24=SC.own24,o5=SC.own5;
+  const [l24,c24]=loadLabel(b24.sc),[l5,c5]=loadLabel(b5.sc);
+  const pre=scanIsSample?`<span class="chip media">ejemplo</span>`:"";
+  const cur24=o24?`Ahora usas el ${o24.ch}${SC.ownOn24?` (carga ${loadLabel(SC.ownOn24.sc)[0]}, ${SC.ownOn24.cnt} redes que se solapan)`:""}.`:"No se vio tu red de 2,4 GHz en el escaneo.";
+  const cur5=o5?`Ahora usas el ${o5.ch}${SC.ownBlock5&&SC.ownBlock5.dfs?", que es DFS: el radar puede obligar a cambiarlo y eso corta la conexión":""}.`:"No se vio tu red de 5 GHz en el escaneo.";
+  const dfsNote=SC.bestDfs&&SC.bestDfs.sc<b5.sc*0.5?`<p class="note">El bloque DFS ${SC.bestDfs.a}–${SC.bestDfs.b} está aún más libre, pero en esos canales el router debe cambiar de canal si detecta radar${LF.counts.dfs&&!logIsSample?", y tu registro ya mostró eventos de radar":""}. Por eso se recomienda un bloque sin DFS.</p>`:"";
+  return `<div class="panel rec"><div class="row" style="justify-content:space-between"><span class="eyebrow">2,4 GHz · SERGIO ROOM</span>${pre}</div>
+    <div class="bigch">Canal ${b24.c}<small>20 MHz</small></div>
+    <p>Carga <span class="chip ${c24}">${l24}</span> · ${b24.cnt} ${b24.cnt===1?"red se solapa":"redes se solapan"}. ${esc(cur24)}</p>
+    <p class="muted" style="font-size:.88rem">Solo se consideran 1, 6 y 11 porque son los únicos que no se pisan entre sí. Le siguen: ${SC.r24.slice(1).map(r=>`${r.c} (${loadLabel(r.sc)[0]})`).join(", ")}.</p></div>
+   <div class="panel rec"><div class="row" style="justify-content:space-between"><span class="eyebrow">5 GHz · SERGIO ROOM_5G</span>${pre}</div>
+    <div class="bigch">Canal ${b5.prim}<small>80 MHz · bloque ${b5.a}–${b5.b}</small></div>
+    <p>Carga <span class="chip ${c5}">${l5}</span> · ${b5.cnt} ${b5.cnt===1?"red en el bloque":"redes en el bloque"}. ${esc(cur5)}</p>
+    <p class="muted" style="font-size:.88rem">Si tu router no ofrece ${b5.a}–${b5.b} (depende de las reglas de tu país), usa el ${SC.alt5?SC.alt5.prim:"36"} (bloque ${SC.alt5?SC.alt5.a+"–"+SC.alt5.b:"36–48"}).</p>${dfsNote}</div>`;
+}
+function renderScan(){
+  if(!SC)return;
+  $("#scanBadge").textContent=scanIsSample?"Ejemplo":`${scans.length} ${scans.length===1?"escaneo":"escaneos"}`;
+  $("#scanBadge").className="chip "+(scanIsSample?"media":"info");
+  $("#scanList").innerHTML=scanIsSample?"":scans.map(s=>`<span class="badge">${esc(s.loc)} · ${s.nets.length} redes · ${new Date(s.at).toLocaleString("es",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"})}</span>`).join("");
+  $("#recs").innerHTML=recCards();$("#fixVals").innerHTML=recCards(true);
+  chart24();chart5();
+  $("#netRows").innerHTML=SC.all.slice().sort((a,b)=>(a.band>b.band?1:a.band<b.band?-1:0)||b.signal-a.signal).map(n=>`<tr><td class="${n.own?"own":""}">${esc(n.ssid||"(red oculta)")}${n.own?" · tuya":""}</td><td class="m">${n.band} GHz</td><td class="m">${n.ch}</td><td class="m">${n.signal}%</td><td class="m">${esc(n.radio)}</td><td>${esc([...n.locs].join(", "))}</td></tr>`).join("");
+}
+$("#ownNames").value=ownNames;
+$("#ownNames").addEventListener("change",e=>{ownNames=e.target.value;store.set("ownNames",ownNames);refresh();});
+$("#copyCmd").onclick=()=>{const t=$("#cmdText").textContent;const done=()=>{$("#copyCmd").textContent="Copiado";setTimeout(()=>$("#copyCmd").textContent="Copiar",1800);};
+  try{navigator.clipboard.writeText(t).then(done,()=>{const r=document.createRange();r.selectNodeContents($("#cmdText"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$("#copyCmd").textContent="Selecciónalo y copia";});}catch(e){}};
+$("#addScan").onclick=()=>{const nets=parseNetsh($("#scanInput").value);
+  if(!nets.length){$("#scanMsg").innerHTML="No encontré redes en ese texto. Asegúrate de pegar el resultado completo de <span class=\"mono\">netsh wlan show networks mode=bssid</span>.";return;}
+  if(scanIsSample){scans=[];scanIsSample=false;}
+  scans.push({loc:$("#scanLoc").value,at:Date.now(),nets});scans=scans.slice(-6);store.set("scans",scans);
+  $("#scanInput").value="";$("#scanMsg").textContent=`Agregado: ${nets.length} redes (${nets.filter(n=>n.band==="2.4").length} en 2,4 GHz, ${nets.filter(n=>n.band==="5").length} en 5 GHz).`;refresh();};
+$("#clearScans").onclick=()=>{store.set("scans",null);scans=[{loc:"Ejemplo",at:Date.now(),nets:parseNetsh(sampleText())}];scanIsSample=true;$("#scanMsg").innerHTML="Escaneos borrados. Se vuelve a mostrar el <b>ejemplo</b>.";refresh();};
 
 /* ---------- Arranque ---------- */
 renderForms();
