@@ -409,7 +409,7 @@ td.own{color:var(--accent);font-weight:600}
               <li>Abre esta misma app en el navegador del PC y pega (Ctrl + V) en el cuadro de la derecha.</li>
               <li>Repite junto al RT-AX82U (comedor) y agrégalo como otro escaneo.</li>
             </ol>
-            <p class="note">Si Windows responde con un error de permisos de ubicación, activa Configuración → Privacidad y seguridad → Ubicación, y permite el acceso a las apps de escritorio. En versiones recientes de Windows 11 este comando lo exige; no estoy seguro de que aplique a todas las versiones. Desde el iPad no se puede escanear: iOS no permite que ninguna app ni web lea las redes vecinas.</p>
+            <p class="note">Si Windows responde con un error de permisos de ubicación, activa Configuración → Privacidad y seguridad → Ubicación, y permite el acceso a las apps de escritorio. En versiones recientes de Windows 11 este comando lo exige; no estoy seguro de que aplique a todas las versiones. Si dice que un administrador la desactivó (PC de empresa), no la fuerces: usa la alternativa con iPhone o iPad de más abajo. Desde el iPad no se puede escanear: iOS no permite que ninguna app ni web lea las redes vecinas.</p>
           </div>
           <div class="panel">
             <div class="row" style="justify-content:space-between">
@@ -430,6 +430,29 @@ td.own{color:var(--accent);font-weight:600}
               <input type="text" id="ownNames">
             </label>
           </div>
+        </div>
+
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <h3>¿Sin Windows? Escanea con el iPhone o iPad</h3>
+            <span class="chip info">Alternativa</span>
+          </div>
+          <div class="grid2">
+            <ol class="howto">
+              <li>Instala <b>Utilidad AirPort</b> (app gratuita de Apple) desde el App Store.</li>
+              <li>Ve a <b>Configuración → Utilidad AirPort</b> (al final de la lista de apps) y activa <b>Escáner Wi-Fi</b>.</li>
+              <li>Abre Utilidad AirPort → <b>Escáner Wi-Fi</b> (arriba a la derecha) → <b>Escanear</b>. Deja que corra unos 30 segundos y detenlo.</li>
+              <li>Saca capturas de la lista completa (desliza para ver todas) y súbelas aquí. Claude lee las redes y las agrega como un escaneo.</li>
+            </ol>
+            <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+              <label class="q">Capturas del escáner<small>Hasta varias imágenes; cada red debe mostrar su canal.</small>
+                <input type="file" id="scanShots" accept="image/*" multiple>
+              </label>
+              <div class="row"><button class="primary" type="button" id="readShots">Leer capturas con IA</button></div>
+              <p class="note" id="shotMsg">El escaneo queda con la ubicación elegida arriba. Revisa la tabla después: la lectura de imágenes puede equivocarse en algún dígito.</p>
+            </div>
+          </div>
+          <p class="note">No pude confirmar que la opción se llame igual en todas las versiones de iOS ni de la app. Busca «Escáner Wi-Fi» o «Wi-Fi Scanner». La intensidad aparece en dBm (RSSI) y la app la convierte a porcentaje de forma aproximada.</p>
         </div>
 
         <div class="recs" id="recs"></div>
@@ -1073,6 +1096,30 @@ $("#addScan").onclick=()=>{const nets=parseNetsh($("#scanInput").value);
   if(scanIsSample){scans=[];scanIsSample=false;}
   scans.push({loc:$("#scanLoc").value,at:Date.now(),nets});scans=scans.slice(-6);store.set("scans",scans);
   $("#scanInput").value="";$("#scanMsg").textContent=`Agregado: ${nets.length} redes (${nets.filter(n=>n.band==="2.4").length} en 2,4 GHz, ${nets.filter(n=>n.band==="5").length} en 5 GHz).`;refresh();};
+$("#readShots").onclick=async()=>{
+  const msg=$("#shotMsg"),files=[...$("#scanShots").files];
+  if(!files.length){msg.textContent="Elige al menos una captura.";return;}
+  if(!sample){msg.textContent="La lectura con IA solo funciona con la app abierta desde claude.ai.";return;}
+  const lim=await sample.limits().catch(()=>null);
+  if(!lim||!lim.images){msg.textContent="Esta vista no permite enviar imágenes a Claude.";return;}
+  $("#readShots").disabled=true;msg.textContent="Leyendo capturas… puede tardar hasta un minuto.";
+  try{
+    const rows=await sample.json(`Las imágenes son capturas de un escáner Wi-Fi (por ejemplo Utilidad AirPort de Apple). Extrae cada red visible.
+Responde SOLO con un arreglo JSON de objetos {"ssid": string, "bssid": string|null, "rssi_dbm": number|null, "signal_pct": number|null, "channel": number}.
+Reglas: una fila por BSSID (o por red si no hay BSSID); ssid vacío "" si la red es oculta; no inventes valores: usa null si no se lee; omite filas sin canal legible; si una red aparece repetida en varias capturas, inclúyela una vez con la mejor señal.
+Ejemplo: [{"ssid":"Depto-301","bssid":"aa:bb:cc:dd:ee:ff","rssi_dbm":-58,"signal_pct":null,"channel":36}]`,{images:files.slice(0,lim.images.maxCount),modelTier:"default"});
+    const nets=(Array.isArray(rows)?rows:[]).map(r=>{const ch=parseInt(r.channel,10);let pct=Number(r.signal_pct);
+      if(!Number.isFinite(pct)){const d=Number(r.rssi_dbm);pct=Number.isFinite(d)?Math.max(0,Math.min(100,2*(d+100))):null;}
+      return {ssid:String(r.ssid||""),bssid:String(r.bssid||("img-"+String(r.ssid||"")+"-"+ch)).toLowerCase(),signal:pct==null?null:Math.round(pct),ch,band:ch<=14?"2.4":"5",radio:"",auth:""};})
+      .filter(n=>Number.isFinite(n.ch)&&n.signal!=null);
+    if(!nets.length){msg.textContent="No se pudieron leer redes en esas capturas. Prueba con capturas más nítidas donde se vea el canal.";return;}
+    if(scanIsSample){scans=[];scanIsSample=false;}
+    scans.push({loc:$("#scanLoc").value+" · captura",at:Date.now(),nets});scans=scans.slice(-6);store.set("scans",scans);
+    msg.textContent=`Leídas ${nets.length} redes (${nets.filter(n=>n.band==="2.4").length} en 2,4 GHz, ${nets.filter(n=>n.band==="5").length} en 5 GHz). Revisa la tabla de abajo.`;
+    $("#scanShots").value="";refresh();
+  }catch(e){msg.textContent=e&&e.code==="invalid_json"?"Claude no devolvió una lista válida. Intenta de nuevo o con menos capturas.":(ERR[e&&e.code]||"No se pudo completar la lectura. Intenta de nuevo.");}
+  finally{$("#readShots").disabled=false;}
+};
 $("#clearScans").onclick=()=>{store.set("scans",null);scans=[{loc:"Ejemplo",at:Date.now(),nets:parseNetsh(sampleText())}];scanIsSample=true;$("#scanMsg").innerHTML="Escaneos borrados. Se vuelve a mostrar el <b>ejemplo</b>.";refresh();};
 
 /* ---------- Arranque ---------- */
